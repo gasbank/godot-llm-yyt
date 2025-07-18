@@ -1,0 +1,28 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Dolki"
+run/main_scene="uid://dt4yka4s6ee24"
+config/features=PackedStringArray("4.4", "Mobile")
+config/icon="res://icon.svg"
+
+[autoload]
+
+OllamaClient="*res://OllamaClient.gd"
+
+[gui]
+
+theme/custom="uid://bcf76y0rvvh7e"
+
+[rendering]
+
+renderer/rendering_method="mobile"

@@ -1,0 +1,90 @@
+[gd_scene load_steps=6 format=3 uid="uid://dt4yka4s6ee24"]
+
+[ext_resource type="Texture2D" uid="uid://c83lkvbmvkgr8" path="res://icon.svg" id="1_0e48y"]
+[ext_resource type="Script" uid="uid://ckkljxnex08b0" path="res://ChatContent.gd" id="1_0hol4"]
+[ext_resource type="Script" uid="uid://bijt4qqoxami3" path="res://test_logo.gd" id="2_epypp"]
+[ext_resource type="Script" uid="uid://blcri3hs3hlnf" path="res://test_button.gd" id="3_epypp"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_0hol4"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Node2D" type="Node2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Node2D"]
+
+[node name="TextEdit" type="TextEdit" parent="Node2D/CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 42.0
+offset_right = -27.0
+offset_bottom = -167.0
+grow_horizontal = 2
+grow_vertical = 2
+placeholder_text = "응답이 여기에 나타납니다."
+editable = false
+wrap_mode = 1
+script = ExtResource("1_0hol4")
+
+[node name="InputControl" type="Control" parent="Node2D/CanvasLayer"]
+material = SubResource("CanvasItemMaterial_0hol4")
+custom_minimum_size = Vector2(1000, 150)
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -164.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("3_epypp")
+
+[node name="InputTextEdit" type="TextEdit" parent="Node2D/CanvasLayer/InputControl"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 45.0
+offset_top = -87.0
+offset_right = -165.0
+offset_bottom = -37.0
+grow_horizontal = 2
+grow_vertical = 0
+placeholder_text = "하고 싶은 말을 쓰세요."
+
+[node name="SendButton" type="Button" parent="Node2D/CanvasLayer/InputControl"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -156.0
+offset_top = -26.0
+offset_right = -34.0
+offset_bottom = 51.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "보내기"
+
+[node name="ErrorLabel" type="Label" parent="Node2D/CanvasLayer/InputControl"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 7.0
+offset_right = 542.0
+offset_bottom = 76.0
+text = "(처리 상황)"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(541, 238)
+texture = ExtResource("1_0e48y")
+script = ExtResource("2_epypp")
+
+[connection signal="gui_input" from="Node2D/CanvasLayer/InputControl/InputTextEdit" to="Node2D/CanvasLayer/InputControl" method="_on_input_text_edit_gui_input"]
+[connection signal="pressed" from="Node2D/CanvasLayer/InputControl/SendButton" to="Sprite2D" method="_on_button_pressed"]
