@@ -1,7 +1,7 @@
 extends CharacterBody2D
 @export var speed: float = 200.0    # 인스펙터에서 조정 가능
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	var dir := Vector2.ZERO
 
 	if Input.is_action_pressed("move_left"):

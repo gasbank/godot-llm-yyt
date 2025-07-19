@@ -23,7 +23,7 @@ func ask(prompt: String) -> void:
 	if err != OK:
 		push_error("HTTP request error: %s" % err)
 
-func _on_response(result, code, _headers, body):
+func _on_response(_result, code, _headers, body):
 	if code != 200:
 		push_error("Ollama error %d" % code)
 		return
