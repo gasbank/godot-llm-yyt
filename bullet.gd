@@ -4,13 +4,26 @@ class_name Bullet
 @export var smooth_time      : float  = 0.25   # Unity SmoothDamp 의 Time
 @export var max_force        : float  = 8000.0 # 힘 제한 (안정성)
 @export var face_forward     : bool = true   # 바라보게 할지
+@export var explosion_prefab: PackedScene
 
 var target : Node2D = null
+
+func _ready() -> void:
+	body_entered.connect(_on_body_entered)
 
 func set_target(new_target: Node2D) -> void:
 	target = new_target            # 타깃 교체
 func clear_target() -> void:
 	target = null                  # 타깃 해제
+	
+func _on_body_entered(other: Node) -> void:
+	other.queue_free()
+	queue_free()
+	var explosion := preload('res://explosion.tscn').instantiate() as GPUParticles2D
+	explosion.global_position = global_position
+	explosion.restart()
+	get_parent().add_child(explosion)
+	
 	
 # _integrate_forces() 를 쓰면 서브‑스텝에서도 안정
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:

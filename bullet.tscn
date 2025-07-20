@@ -5,11 +5,14 @@
 [ext_resource type="Texture2D" uid="uid://cbdsk4oknfmi8" path="res://bullet-free-3-svgrepo-com.svg" id="2_v8qja"]
 
 [node name="Bullet" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 2
+contact_monitor = true
+max_contacts_reported = 4
 script = ExtResource("1_t4vbm")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = ExtResource("1_v8qja")
-disabled = true
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 rotation = 1.5708
