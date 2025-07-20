@@ -10,9 +10,10 @@ func _ready() -> void:
 func _on_spawn_timer_timeout() -> void:
 	var random_enemy = Utils.get_random_with_script(get_tree().current_scene, load("res://enemy.gd"))
 	if random_enemy:
-		var bullet := bullet_prefab.instantiate() as Bullet
+		var bullet := bullet_prefab.instantiate()
 		get_parent().add_child(bullet)
-		
-		#bullet.set_target($"../Player")
-		bullet.set_target(random_enemy)
 		bullet.global_position = muzzle.global_position
+		
+		if bullet is Bullet:
+			#bullet.set_target($"../Player")
+			bullet.set_target(random_enemy)

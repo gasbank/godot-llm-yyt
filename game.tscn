@@ -136,3 +136,20 @@ position = Vector2(36, -56)
 [node name="SpawnTimer" type="Timer" parent="Turret"]
 wait_time = 2.0
 autostart = true
+
+[node name="Turret2" type="Node2D" parent="."]
+position = Vector2(934, 168)
+scale = Vector2(-1, 1)
+script = ExtResource("8_vef74")
+bullet_prefab = ExtResource("6_ryrav")
+
+[node name="Sprite2D" type="Sprite2D" parent="Turret2"]
+texture = ExtResource("9_hve3p")
+offset = Vector2(0, -40)
+
+[node name="Muzzle" type="Marker2D" parent="Turret2"]
+position = Vector2(36, -56)
+
+[node name="SpawnTimer" type="Timer" parent="Turret2"]
+wait_time = 2.0
+autostart = true
