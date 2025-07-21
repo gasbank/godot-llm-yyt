@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://b3bkn7oy8vkq6"]
+[gd_scene load_steps=15 format=3 uid="uid://b3bkn7oy8vkq6"]
 
 [ext_resource type="Texture2D" uid="uid://c83lkvbmvkgr8" path="res://icon.svg" id="1_80nbo"]
 [ext_resource type="Script" uid="uid://dj3xgcy5xl0ks" path="res://player.gd" id="1_e2o6t"]
@@ -7,9 +7,10 @@
 [ext_resource type="Script" uid="uid://dgcgyfgdr1x22" path="res://area_trigger.gd" id="3_feb5d"]
 [ext_resource type="Shape2D" uid="uid://ccme4fq2ofvqe" path="res://player_shape.tres" id="4_eow3j"]
 [ext_resource type="PackedScene" uid="uid://cvwvm5tje3v5t" path="res://enemy.tscn" id="6_ryrav"]
-[ext_resource type="Script" uid="uid://dayvtlxju38jm" path="res://turret.gd" id="8_vef74"]
-[ext_resource type="Texture2D" uid="uid://b5ug3gdry40m6" path="res://turret-svgrepo-com.svg" id="9_hve3p"]
-[ext_resource type="PackedScene" uid="uid://qnmkeho7d58h" path="res://bullet.tscn" id="9_mfdv2"]
+[ext_resource type="PackedScene" uid="uid://56sryu3wc8nw" path="res://turret.tscn" id="8_mfdv2"]
+[ext_resource type="Script" uid="uid://cfqqk08gl1c05" path="res://building.gd" id="11_lc2xo"]
+[ext_resource type="Shape2D" uid="uid://dh4kcjmiocdtl" path="res://building_shape.tres" id="12_215e1"]
+[ext_resource type="Texture2D" uid="uid://csxlwi43ytcub" path="res://building-dome-svgrepo-com.svg" id="13_7sc4i"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_e2o6t"]
 size = Vector2(100, 50)
@@ -24,84 +25,87 @@ size = Vector2(800, 10)
 script = ExtResource("1_eow3j")
 enemy_scene = ExtResource("6_ryrav")
 
-[node name="Area2D" type="Area2D" parent="."]
-position = Vector2(390, 299)
+[node name="TestArea2D" type="Area2D" parent="."]
+position = Vector2(792, 74)
 script = ExtResource("3_feb5d")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TestArea2D"]
 shape = SubResource("RectangleShape2D_e2o6t")
 
-[node name="Sprite2D" type="Sprite2D" parent="Area2D"]
+[node name="Sprite2D" type="Sprite2D" parent="TestArea2D"]
 texture = SubResource("PlaceholderTexture2D_feb5d")
 
-[node name="Wall" type="StaticBody2D" parent="."]
+[node name="WallGroup" type="Node2D" parent="."]
+
+[node name="Wall" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(910, 18)
 rotation = -3.01221
+scale = Vector2(1, 1)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall"]
 shape = ExtResource("2_fc0e3")
 
-[node name="Sprite2D" type="Sprite2D" parent="Wall"]
+[node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
-[node name="Wall2" type="StaticBody2D" parent="."]
+[node name="Wall2" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(1121, 293)
 rotation = -1.59166
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall2"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall2"]
 shape = ExtResource("2_fc0e3")
 
-[node name="Sprite2D" type="Sprite2D" parent="Wall2"]
+[node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall2"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
-[node name="Wall3" type="StaticBody2D" parent="."]
+[node name="Wall3" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(49, 329)
 rotation = -1.59166
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall3"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall3"]
 shape = ExtResource("2_fc0e3")
 
-[node name="Sprite2D" type="Sprite2D" parent="Wall3"]
+[node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall3"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
-[node name="Wall4" type="StaticBody2D" parent="."]
+[node name="Wall4" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(239, 80)
 rotation = -0.0130675
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall4"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall4"]
 shape = ExtResource("2_fc0e3")
 
-[node name="Sprite2D" type="Sprite2D" parent="Wall4"]
+[node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall4"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
-[node name="Wall5" type="StaticBody2D" parent="."]
+[node name="Wall5" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(957, -133)
 rotation = -0.565012
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall5"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall5"]
 shape = ExtResource("2_fc0e3")
 
-[node name="Sprite2D" type="Sprite2D" parent="Wall5"]
+[node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall5"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
-[node name="Wall6" type="StaticBody2D" parent="."]
+[node name="Wall6" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(305, 628)
 rotation = -0.00523651
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall6"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall6"]
 shape = ExtResource("2_fc0e3")
 
-[node name="Sprite2D" type="Sprite2D" parent="Wall6"]
+[node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall6"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
-[node name="Wall7" type="StaticBody2D" parent="."]
+[node name="Wall7" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(861, 571)
 rotation = -0.260332
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall7"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall7"]
 shape = ExtResource("2_fc0e3")
 
-[node name="Sprite2D" type="Sprite2D" parent="Wall7"]
+[node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall7"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
 [node name="Player" type="CharacterBody2D" parent="."]
@@ -121,35 +125,34 @@ texture = ExtResource("1_80nbo")
 position = Vector2(1030, 196)
 gizmo_extents = 20.0
 
-[node name="Turret" type="Node2D" parent="."]
-position = Vector2(221, 197)
-script = ExtResource("8_vef74")
-bullet_prefab = ExtResource("9_mfdv2")
+[node name="Turret" parent="." instance=ExtResource("8_mfdv2")]
+position = Vector2(131, 561)
 
-[node name="Sprite2D" type="Sprite2D" parent="Turret"]
-texture = ExtResource("9_hve3p")
+[node name="Building" type="Area2D" parent="."]
+position = Vector2(125, 628)
+collision_layer = 16
+collision_mask = 6
+script = ExtResource("11_lc2xo")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Building"]
+position = Vector2(0, -42)
+shape = ExtResource("12_215e1")
+
+[node name="Sprite2D" type="Sprite2D" parent="Building"]
+texture = ExtResource("13_7sc4i")
 offset = Vector2(0, -40)
 
-[node name="Muzzle" type="Marker2D" parent="Turret"]
-position = Vector2(36, -56)
+[node name="HPText" type="Label" parent="Building"]
+offset_left = -71.0
+offset_top = -135.0
+offset_right = 74.0
+offset_bottom = -93.0
+text = "100/100"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="SpawnTimer" type="Timer" parent="Turret"]
-wait_time = 2.0
-autostart = true
-
-[node name="Turret2" type="Node2D" parent="."]
-position = Vector2(934, 168)
+[node name="EnemyTurret" parent="." instance=ExtResource("8_mfdv2")]
+position = Vector2(1073, 516)
 scale = Vector2(-1, 1)
-script = ExtResource("8_vef74")
 bullet_prefab = ExtResource("6_ryrav")
-
-[node name="Sprite2D" type="Sprite2D" parent="Turret2"]
-texture = ExtResource("9_hve3p")
-offset = Vector2(0, -40)
-
-[node name="Muzzle" type="Marker2D" parent="Turret2"]
-position = Vector2(36, -56)
-
-[node name="SpawnTimer" type="Timer" parent="Turret2"]
-wait_time = 2.0
-autostart = true
+only_spawn_if_enemy_exists = false

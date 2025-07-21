@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://56sryu3wc8nw"]
+
+[ext_resource type="Script" uid="uid://dayvtlxju38jm" path="res://turret.gd" id="1_c5apd"]
+[ext_resource type="PackedScene" uid="uid://qnmkeho7d58h" path="res://bullet.tscn" id="2_coqkk"]
+[ext_resource type="Texture2D" uid="uid://b5ug3gdry40m6" path="res://turret-svgrepo-com.svg" id="3_2kw7u"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_lc2xo"]
+radius = 500.0
+
+[node name="Turret" type="Node2D" node_paths=PackedStringArray("enemy_detector")]
+script = ExtResource("1_c5apd")
+bullet_prefab = ExtResource("2_coqkk")
+only_spawn_if_enemy_exists = true
+enemy_detector = NodePath("EnemyDetector")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_2kw7u")
+offset = Vector2(0, -40)
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(36, -56)
+
+[node name="SpawnTimer" type="Timer" parent="."]
+wait_time = 2.0
+autostart = true
+
+[node name="EnemyDetector" type="Area2D" parent="."]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemyDetector"]
+shape = SubResource("CircleShape2D_lc2xo")

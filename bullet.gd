@@ -18,6 +18,9 @@ func clear_target() -> void:
 	
 func _on_body_entered(other: Node) -> void:
 	other.queue_free()
+	_self_destruct()
+	
+func _self_destruct():
 	queue_free()
 	var explosion := preload('res://explosion.tscn').instantiate() as GPUParticles2D
 	explosion.global_position = global_position
@@ -26,8 +29,9 @@ func _on_body_entered(other: Node) -> void:
 	
 	
 # _integrate_forces() 를 쓰면 서브‑스텝에서도 안정
-func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
+func _integrate_forces(_state: PhysicsDirectBodyState2D) -> void:
 	if not is_instance_valid(target):
+		_self_destruct()
 		return
 
 	# --- 1) 스프링/댐퍼 계수 계산 (임계 감쇠) ----------------------------

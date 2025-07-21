@@ -10,6 +10,8 @@ collision_mask = 2
 contact_monitor = true
 max_contacts_reported = 4
 script = ExtResource("1_t4vbm")
+smooth_time = 0.2
+max_force = 3000.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = ExtResource("1_v8qja")
