@@ -21,9 +21,10 @@ size = Vector2(100, 50)
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_fc0e3"]
 size = Vector2(800, 10)
 
-[node name="Node2D" type="Node2D"]
+[node name="Node2D" type="Node2D" node_paths=PackedStringArray("spawn_point")]
 script = ExtResource("1_eow3j")
 enemy_scene = ExtResource("6_ryrav")
+spawn_point = NodePath("SpawnPoint")
 
 [node name="TestArea2D" type="Area2D" parent="."]
 position = Vector2(792, 74)
@@ -133,6 +134,8 @@ position = Vector2(125, 628)
 collision_layer = 16
 collision_mask = 6
 script = ExtResource("11_lc2xo")
+hp = 1
+max_hp = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Building"]
 position = Vector2(0, -42)
@@ -153,6 +156,7 @@ vertical_alignment = 1
 
 [node name="EnemyTurret" parent="." instance=ExtResource("8_mfdv2")]
 position = Vector2(1073, 516)
-scale = Vector2(-1, 1)
+rotation = 3.14159
+scale = Vector2(1, -1)
 bullet_prefab = ExtResource("6_ryrav")
 only_spawn_if_enemy_exists = false
