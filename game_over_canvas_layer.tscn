@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3 uid="uid://dwgubdkfiib2a"]
+
+[ext_resource type="Script" uid="uid://cwjs00dy2rx5b" path="res://game_over_canvas_layer.gd" id="1_jtlml"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_mfdv2"]
+font_size = 100
+
+[node name="GameOverCanvasLayer" type="CanvasLayer" node_paths=PackedStringArray("button")]
+script = ExtResource("1_jtlml")
+button = NodePath("Panel/VBoxContainer/RetryButton")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -328.0
+offset_top = -98.5
+offset_right = 328.0
+offset_bottom = 98.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "GAME OVER!!!"
+label_settings = SubResource("LabelSettings_mfdv2")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RetryButton" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "재도전!"

@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 OllamaClient="*res://OllamaClient.gd"
 Utils="*res://Utils.gd"
+Delay="*res://Delay.gd"
 
 [gui]
 
