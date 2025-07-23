@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://cutrdgg6e7xeb"]
 
-[ext_resource type="Texture2D" uid="uid://dapuputs7ixb" path="res://spark-svgrepo-com.svg" id="1_q7epf"]
+[ext_resource type="Texture2D" uid="uid://dapuputs7ixb" path="res://svg/spark-svgrepo-com.svg" id="1_q7epf"]
 [ext_resource type="Script" uid="uid://b6r54dndhtlju" path="res://explosion.gd" id="2_vxas0"]
 
 [sub_resource type="Curve" id="Curve_mfdv2"]

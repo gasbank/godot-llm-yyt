@@ -1,39 +1,19 @@
-[gd_scene load_steps=15 format=3 uid="uid://b3bkn7oy8vkq6"]
+[gd_scene load_steps=10 format=3 uid="uid://bmhkxop36p8c"]
 
-[ext_resource type="Texture2D" uid="uid://c83lkvbmvkgr8" path="res://svg/icon.svg" id="1_80nbo"]
-[ext_resource type="Script" uid="uid://dj3xgcy5xl0ks" path="res://player.gd" id="1_e2o6t"]
-[ext_resource type="Script" uid="uid://cpepd536v5ni0" path="res://game.gd" id="1_eow3j"]
-[ext_resource type="Shape2D" uid="uid://c0haj2mgv1412" path="res://wall_shape.tres" id="2_fc0e3"]
-[ext_resource type="Script" uid="uid://dgcgyfgdr1x22" path="res://area_trigger.gd" id="3_feb5d"]
-[ext_resource type="Shape2D" uid="uid://ccme4fq2ofvqe" path="res://player_shape.tres" id="4_eow3j"]
-[ext_resource type="PackedScene" uid="uid://cvwvm5tje3v5t" path="res://enemy.tscn" id="6_ryrav"]
-[ext_resource type="PackedScene" uid="uid://56sryu3wc8nw" path="res://turret.tscn" id="8_mfdv2"]
-[ext_resource type="Script" uid="uid://cfqqk08gl1c05" path="res://building.gd" id="11_lc2xo"]
-[ext_resource type="Shape2D" uid="uid://dh4kcjmiocdtl" path="res://building_shape.tres" id="12_215e1"]
-[ext_resource type="Texture2D" uid="uid://csxlwi43ytcub" path="res://svg/building-dome-svgrepo-com.svg" id="13_7sc4i"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_e2o6t"]
-size = Vector2(100, 50)
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_feb5d"]
-size = Vector2(100, 50)
+[ext_resource type="Script" uid="uid://cpepd536v5ni0" path="res://game.gd" id="1_qw6kx"]
+[ext_resource type="Shape2D" uid="uid://c0haj2mgv1412" path="res://wall_shape.tres" id="4_f8k1y"]
+[ext_resource type="Script" uid="uid://dj3xgcy5xl0ks" path="res://player.gd" id="5_nhfqt"]
+[ext_resource type="Shape2D" uid="uid://ccme4fq2ofvqe" path="res://player_shape.tres" id="6_v0n6i"]
+[ext_resource type="Texture2D" uid="uid://c83lkvbmvkgr8" path="res://svg/icon.svg" id="7_xspbh"]
+[ext_resource type="Script" uid="uid://cfqqk08gl1c05" path="res://building.gd" id="9_8tca4"]
+[ext_resource type="Shape2D" uid="uid://dh4kcjmiocdtl" path="res://building_shape.tres" id="10_boqrt"]
+[ext_resource type="Texture2D" uid="uid://csxlwi43ytcub" path="res://svg/building-dome-svgrepo-com.svg" id="11_vfwdf"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_fc0e3"]
 size = Vector2(800, 10)
 
-[node name="Node2D" type="Node2D" node_paths=PackedStringArray("spawn_point")]
-script = ExtResource("1_eow3j")
-spawn_point = NodePath("SpawnPoint")
-
-[node name="TestArea2D" type="Area2D" parent="."]
-position = Vector2(792, 74)
-script = ExtResource("3_feb5d")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="TestArea2D"]
-shape = SubResource("RectangleShape2D_e2o6t")
-
-[node name="Sprite2D" type="Sprite2D" parent="TestArea2D"]
-texture = SubResource("PlaceholderTexture2D_feb5d")
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_qw6kx")
 
 [node name="WallGroup" type="Node2D" parent="."]
 
@@ -42,7 +22,7 @@ position = Vector2(910, 18)
 rotation = -3.01221
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall"]
-shape = ExtResource("2_fc0e3")
+shape = ExtResource("4_f8k1y")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
@@ -52,7 +32,7 @@ position = Vector2(1121, 293)
 rotation = -1.59166
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall2"]
-shape = ExtResource("2_fc0e3")
+shape = ExtResource("4_f8k1y")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall2"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
@@ -62,7 +42,7 @@ position = Vector2(49, 329)
 rotation = -1.59166
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall3"]
-shape = ExtResource("2_fc0e3")
+shape = ExtResource("4_f8k1y")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall3"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
@@ -72,7 +52,7 @@ position = Vector2(239, 80)
 rotation = -0.0130675
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall4"]
-shape = ExtResource("2_fc0e3")
+shape = ExtResource("4_f8k1y")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall4"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
@@ -82,7 +62,7 @@ position = Vector2(957, -133)
 rotation = -0.565012
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall5"]
-shape = ExtResource("2_fc0e3")
+shape = ExtResource("4_f8k1y")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall5"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
@@ -92,7 +72,7 @@ position = Vector2(305, 628)
 rotation = -0.00523651
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall6"]
-shape = ExtResource("2_fc0e3")
+shape = ExtResource("4_f8k1y")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall6"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
@@ -102,7 +82,7 @@ position = Vector2(861, 571)
 rotation = -0.260332
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall7"]
-shape = ExtResource("2_fc0e3")
+shape = ExtResource("4_f8k1y")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallGroup/Wall7"]
 texture = SubResource("PlaceholderTexture2D_fc0e3")
@@ -110,37 +90,30 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 [node name="Player" type="CharacterBody2D" parent="."]
 position = Vector2(103, 143)
 motion_mode = 1
-script = ExtResource("1_e2o6t")
+script = ExtResource("5_nhfqt")
 speed = 400.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
-shape = ExtResource("4_eow3j")
+shape = ExtResource("6_v0n6i")
 
 [node name="Sprite2D" type="Sprite2D" parent="Player"]
 scale = Vector2(0.5, 0.5)
-texture = ExtResource("1_80nbo")
-
-[node name="SpawnPoint" type="Marker2D" parent="."]
-position = Vector2(1030, 196)
-gizmo_extents = 20.0
-
-[node name="Turret" parent="." instance=ExtResource("8_mfdv2")]
-position = Vector2(131, 561)
+texture = ExtResource("7_xspbh")
 
 [node name="Building" type="Area2D" parent="."]
 position = Vector2(125, 628)
 collision_layer = 16
 collision_mask = 6
-script = ExtResource("11_lc2xo")
-hp = 1
-max_hp = 1
+script = ExtResource("9_8tca4")
+hp = 10
+max_hp = 10
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Building"]
 position = Vector2(0, -42)
-shape = ExtResource("12_215e1")
+shape = ExtResource("10_boqrt")
 
 [node name="Sprite2D" type="Sprite2D" parent="Building"]
-texture = ExtResource("13_7sc4i")
+texture = ExtResource("11_vfwdf")
 offset = Vector2(0, -40)
 
 [node name="HPText" type="Label" parent="Building"]
@@ -151,10 +124,3 @@ offset_bottom = -93.0
 text = "100/100"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="EnemyTurret" parent="." instance=ExtResource("8_mfdv2")]
-position = Vector2(1073, 516)
-rotation = 3.14159
-scale = Vector2(1, -1)
-bullet_prefab = ExtResource("6_ryrav")
-only_spawn_if_enemy_exists = false

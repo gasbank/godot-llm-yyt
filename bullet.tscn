@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://r8o45wjkhila" path="res://bullet.gd" id="1_t4vbm"]
 [ext_resource type="Shape2D" uid="uid://0ng1wvp3ba10" path="res://bullet_shape.tres" id="1_v8qja"]
-[ext_resource type="Texture2D" uid="uid://cbdsk4oknfmi8" path="res://bullet-free-3-svgrepo-com.svg" id="2_v8qja"]
+[ext_resource type="Texture2D" uid="uid://cbdsk4oknfmi8" path="res://svg/bullet-free-3-svgrepo-com.svg" id="2_v8qja"]
 
 [node name="Bullet" type="RigidBody2D"]
 collision_layer = 4

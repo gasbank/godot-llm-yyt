@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5ug3gdry40m6"
-path="res://.godot/imported/turret-svgrepo-com.svg-5e19509e12632ea7994152481853f9c3.ctex"
+uid="uid://c83lkvbmvkgr8"
+path="res://.godot/imported/icon.svg-b25f6a603df3da61d09977cc64cb8f32.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://turret-svgrepo-com.svg"
-dest_files=["res://.godot/imported/turret-svgrepo-com.svg-5e19509e12632ea7994152481853f9c3.ctex"]
+source_file="res://svg/icon.svg"
+dest_files=["res://.godot/imported/icon.svg-b25f6a603df3da61d09977cc64cb8f32.ctex"]
 
 [params]
 
@@ -32,6 +32,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=0.1
+svg/scale=1.0
 editor/scale_with_editor_scale=false
 editor/convert_colors_with_editor_theme=false

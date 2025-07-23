@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dayvtlxju38jm" path="res://turret.gd" id="1_c5apd"]
 [ext_resource type="PackedScene" uid="uid://qnmkeho7d58h" path="res://bullet.tscn" id="2_coqkk"]
-[ext_resource type="Texture2D" uid="uid://b5ug3gdry40m6" path="res://turret-svgrepo-com.svg" id="3_2kw7u"]
+[ext_resource type="Texture2D" uid="uid://b5ug3gdry40m6" path="res://svg/turret-svgrepo-com.svg" id="3_2kw7u"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_lc2xo"]
 radius = 500.0
