@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://bbkdvyjlqu0lq" path="res://svg/bullet-weapons-svgrepo-com.svg" id="1_xfj7g"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d8yx4"]
-size = Vector2(8, 4.75018)
+size = Vector2(16.362, 4.75018)
 
 [node name="SmallBullet" type="RigidBody2D"]
 collision_layer = 2
@@ -14,10 +14,10 @@ max_contacts_reported = 4
 script = ExtResource("1_ooivi")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(3.63795, 0)
+position = Vector2(7.81897, 0)
 shape = SubResource("RectangleShape2D_d8yx4")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 rotation = -1.5708
 texture = ExtResource("1_xfj7g")
-offset = Vector2(0, 4)
+offset = Vector2(0, 8)
