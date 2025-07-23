@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cbdsk4oknfmi8"
-path="res://.godot/imported/bullet-free-3-svgrepo-com.svg-bfc178707df5924cc0d222e65b137ce1.ctex"
+uid="uid://b5ug3gdry40m6"
+path="res://.godot/imported/turret-svgrepo-com.svg-9d74853bc0b684afa73c8d7155657f7c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://bullet-free-3-svgrepo-com.svg"
-dest_files=["res://.godot/imported/bullet-free-3-svgrepo-com.svg-bfc178707df5924cc0d222e65b137ce1.ctex"]
+source_file="res://svg/turret-svgrepo-com.svg"
+dest_files=["res://.godot/imported/turret-svgrepo-com.svg-9d74853bc0b684afa73c8d7155657f7c.ctex"]
 
 [params]
 

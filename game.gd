@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var enemy_scene: PackedScene
+@export var enemy_prefab: PackedScene
 @export var spawn_point: Node2D
 
 func _ready() -> void:
@@ -11,10 +11,11 @@ func _ready() -> void:
 		building.building_destroyed.connect(_on_building_destroyed)
 
 func spawn_multiple(count: int) -> void:
-	for i in range(count):
-		var enemy = enemy_scene.instantiate()      # ① 프리팹 인스턴스 생성
-		enemy.position = spawn_point.position      # ② 생성 위치 지정
-		add_child(enemy)                           # ③ 씬 트리에 추가
+	if enemy_prefab:
+		for i in range(count):
+			var enemy = enemy_prefab.instantiate()      # ① 프리팹 인스턴스 생성
+			enemy.position = spawn_point.position      # ② 생성 위치 지정
+			add_child(enemy)                           # ③ 씬 트리에 추가
 
 func _collect_building_with_type(root: Node) -> Array[Building]:
 	var bucket: Array[Building] = []

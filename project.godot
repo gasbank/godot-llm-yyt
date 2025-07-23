@@ -11,9 +11,9 @@ config_version=5
 [application]
 
 config/name="Dolki"
-run/main_scene="uid://b3bkn7oy8vkq6"
+run/main_scene="uid://bmhkxop36p8c"
 config/features=PackedStringArray("4.4", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://svg/icon.svg"
 
 [autoload]
 

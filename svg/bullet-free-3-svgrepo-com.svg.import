@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://o2g1ptdlwxc5"
-path="res://.godot/imported/monster-svgrepo-com.svg-97e7b3b07b1b0c0bd5040c356f4f8833.ctex"
+uid="uid://cbdsk4oknfmi8"
+path="res://.godot/imported/bullet-free-3-svgrepo-com.svg-ab25ed0df5e977e7a22b9fdb8bca308d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://monster-svgrepo-com.svg"
-dest_files=["res://.godot/imported/monster-svgrepo-com.svg-97e7b3b07b1b0c0bd5040c356f4f8833.ctex"]
+source_file="res://svg/bullet-free-3-svgrepo-com.svg"
+dest_files=["res://.godot/imported/bullet-free-3-svgrepo-com.svg-ab25ed0df5e977e7a22b9fdb8bca308d.ctex"]
 
 [params]
 

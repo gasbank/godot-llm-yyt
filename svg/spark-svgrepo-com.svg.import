@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://csxlwi43ytcub"
-path="res://.godot/imported/building-dome-svgrepo-com.svg-a5c1cc64f01dff34a5d100a7f8de6a2d.ctex"
+uid="uid://dapuputs7ixb"
+path="res://.godot/imported/spark-svgrepo-com.svg-1c32f53ba2d51002f1ae5fa8486ac46b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://building-dome-svgrepo-com.svg"
-dest_files=["res://.godot/imported/building-dome-svgrepo-com.svg-a5c1cc64f01dff34a5d100a7f8de6a2d.ctex"]
+source_file="res://svg/spark-svgrepo-com.svg"
+dest_files=["res://.godot/imported/spark-svgrepo-com.svg-1c32f53ba2d51002f1ae5fa8486ac46b.ctex"]
 
 [params]
 
@@ -32,6 +32,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=0.1
+svg/scale=0.02
 editor/scale_with_editor_scale=false
 editor/convert_colors_with_editor_theme=false
