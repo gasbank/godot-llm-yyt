@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://bmhkxop36p8c"]
+[gd_scene load_steps=11 format=3 uid="uid://bmhkxop36p8c"]
 
 [ext_resource type="Script" uid="uid://cpepd536v5ni0" path="res://game.gd" id="1_qw6kx"]
 [ext_resource type="Shape2D" uid="uid://c0haj2mgv1412" path="res://wall_shape.tres" id="4_f8k1y"]
@@ -6,6 +6,7 @@
 [ext_resource type="Shape2D" uid="uid://ccme4fq2ofvqe" path="res://player_shape.tres" id="6_v0n6i"]
 [ext_resource type="Texture2D" uid="uid://c83lkvbmvkgr8" path="res://svg/icon.svg" id="7_xspbh"]
 [ext_resource type="Script" uid="uid://cfqqk08gl1c05" path="res://building.gd" id="9_8tca4"]
+[ext_resource type="PackedScene" uid="uid://dwnereei63xkn" path="res://gunner.tscn" id="9_ck3wt"]
 [ext_resource type="Shape2D" uid="uid://dh4kcjmiocdtl" path="res://building_shape.tres" id="10_boqrt"]
 [ext_resource type="Texture2D" uid="uid://csxlwi43ytcub" path="res://svg/building-dome-svgrepo-com.svg" id="11_vfwdf"]
 
@@ -20,6 +21,7 @@ script = ExtResource("1_qw6kx")
 [node name="Wall" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(910, 18)
 rotation = -3.01221
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall"]
 shape = ExtResource("4_f8k1y")
@@ -30,6 +32,7 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 [node name="Wall2" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(1121, 293)
 rotation = -1.59166
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall2"]
 shape = ExtResource("4_f8k1y")
@@ -40,6 +43,7 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 [node name="Wall3" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(49, 329)
 rotation = -1.59166
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall3"]
 shape = ExtResource("4_f8k1y")
@@ -50,6 +54,7 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 [node name="Wall4" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(239, 80)
 rotation = -0.0130675
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall4"]
 shape = ExtResource("4_f8k1y")
@@ -60,6 +65,7 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 [node name="Wall5" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(957, -133)
 rotation = -0.565012
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall5"]
 shape = ExtResource("4_f8k1y")
@@ -70,6 +76,7 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 [node name="Wall6" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(305, 628)
 rotation = -0.00523651
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall6"]
 shape = ExtResource("4_f8k1y")
@@ -80,6 +87,7 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 [node name="Wall7" type="StaticBody2D" parent="WallGroup"]
 position = Vector2(861, 571)
 rotation = -0.260332
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WallGroup/Wall7"]
 shape = ExtResource("4_f8k1y")
@@ -124,3 +132,6 @@ offset_bottom = -93.0
 text = "100/100"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Gunner" parent="." instance=ExtResource("9_ck3wt")]
+position = Vector2(1061, 440)
