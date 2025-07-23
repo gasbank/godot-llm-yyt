@@ -89,9 +89,9 @@ texture = SubResource("PlaceholderTexture2D_fc0e3")
 
 [node name="Player" type="CharacterBody2D" parent="."]
 position = Vector2(103, 143)
-motion_mode = 1
 script = ExtResource("5_nhfqt")
 speed = 400.0
+gravity = 980.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 shape = ExtResource("6_v0n6i")
