@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cvwvm5tje3v5t"]
 
-[ext_resource type="Shape2D" uid="uid://cjf4q3imitgj4" path="res://enemy_shape.tres" id="1_4gyqm"]
 [ext_resource type="Script" uid="uid://b2a0au4mjysgq" path="res://enemy.gd" id="1_qi2p4"]
+[ext_resource type="Shape2D" uid="uid://dg8en1gspwms5" path="res://gunner_shape.tres" id="2_iifgy"]
 [ext_resource type="Texture2D" uid="uid://o2g1ptdlwxc5" path="res://svg/monster-svgrepo-com.svg" id="2_qi2p4"]
 
 [node name="Enemy" type="RigidBody2D"]
@@ -10,7 +10,7 @@ collision_mask = 7
 script = ExtResource("1_qi2p4")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = ExtResource("1_4gyqm")
+shape = ExtResource("2_iifgy")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(0.5, 0.5)

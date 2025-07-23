@@ -1,0 +1,35 @@
+[gd_scene load_steps=7 format=3 uid="uid://dwnereei63xkn"]
+
+[ext_resource type="Script" uid="uid://b2a0au4mjysgq" path="res://enemy.gd" id="1_e8ncc"]
+[ext_resource type="Shape2D" uid="uid://dg8en1gspwms5" path="res://gunner_shape.tres" id="2_e7ore"]
+[ext_resource type="Texture2D" uid="uid://d03233f2qfmxm" path="res://svg/military-soldier-svgrepo-com.svg" id="3_bli0k"]
+[ext_resource type="Texture2D" uid="uid://g7u4vobr3yul" path="res://svg/machine-gun-svgrepo-com.svg" id="4_dq4ag"]
+[ext_resource type="Script" uid="uid://dd8jockpvj6ws" path="res://weapon.gd" id="5_bli0k"]
+[ext_resource type="PackedScene" uid="uid://c45a4j54v6frb" path="res://small_bullet.tscn" id="6_dq4ag"]
+
+[node name="Gunner" type="RigidBody2D"]
+collision_layer = 2
+collision_mask = 7
+lock_rotation = true
+script = ExtResource("1_e8ncc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = ExtResource("2_e7ore")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_bli0k")
+
+[node name="Weapon" type="Sprite2D" parent="."]
+position = Vector2(-6, 0)
+scale = Vector2(-1, 1)
+texture = ExtResource("4_dq4ag")
+offset = Vector2(14, 0)
+script = ExtResource("5_bli0k")
+bullet_prefab = ExtResource("6_dq4ag")
+
+[node name="Muzzle" type="Marker2D" parent="Weapon"]
+position = Vector2(28, -1)
+
+[node name="BulletSpawnTimer" type="Timer" parent="Weapon"]
+autostart = true

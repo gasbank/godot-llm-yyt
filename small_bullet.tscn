@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://c45a4j54v6frb"]
+
+[ext_resource type="Script" uid="uid://ddqvdqv7vt0sb" path="res://small_bullet.gd" id="1_ooivi"]
+[ext_resource type="Texture2D" uid="uid://bbkdvyjlqu0lq" path="res://svg/bullet-weapons-svgrepo-com.svg" id="1_xfj7g"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d8yx4"]
+size = Vector2(8, 4.75018)
+
+[node name="SmallBullet" type="RigidBody2D"]
+collision_layer = 2
+collision_mask = 17
+contact_monitor = true
+max_contacts_reported = 4
+script = ExtResource("1_ooivi")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(3.63795, 0)
+shape = SubResource("RectangleShape2D_d8yx4")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = -1.5708
+texture = ExtResource("1_xfj7g")
+offset = Vector2(0, 4)

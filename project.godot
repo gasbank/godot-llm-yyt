@@ -48,6 +48,12 @@ move_down={
 ]
 }
 
+[layer_names]
+
+2d_physics/layer_1="Wall"
+2d_physics/layer_2="Enemy"
+2d_physics/layer_5="PlayerBuilding"
+
 [rendering]
 
 renderer/rendering_method="mobile"
