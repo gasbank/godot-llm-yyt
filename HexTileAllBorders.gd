@@ -26,6 +26,9 @@ extends Node2D
 @export var hover_fill_color: Color = Color(1.0, 0.85, 0.2, 0.35)  # 반투명
 @export var show_hover_when_outside: bool = false
 
+# === 클릭 토글 설정 ===
+@export var click_fill_color: Color = Color(0.0, 0.5, 1.0, 0.6)  # 파란색
+
 const SQRT3: float = 1.7320508075688772
 
 var _mesh_instance: MeshInstance2D
@@ -39,6 +42,10 @@ var _active_pan_button: int = -1
 # Hover fill
 var _hover_poly: Polygon2D
 var _hover_tile: Vector2i = Vector2i(2147483647, 2147483647)      # 불가능한 초기값
+
+# 클릭된 타일들 저장
+var _clicked_tiles: Dictionary = {}  # Vector2i -> bool
+var _clicked_polys: Dictionary = {}  # Vector2i -> Polygon2D
 
 func _ready() -> void:
 	if center_in_viewport:
@@ -95,6 +102,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif (not btn.pressed) and _panning and btn.button_index == _active_pan_button:
 			_panning = false
 			_active_pan_button = -1
+			return
+
+	# === 클릭으로 타일 토글 ===
+	if event is InputEventMouseButton:
+		var btn: InputEventMouseButton = event as InputEventMouseButton
+		if btn.pressed and btn.button_index == MOUSE_BUTTON_LEFT and not _panning:
+			_handle_tile_click()
 			return
 
 	# === 패닝 중 이동 & Hover 갱신 ===
@@ -300,3 +314,43 @@ func _axial_round(qf: float, rf: float) -> Vector2i:
 
 func _axial_distance(q: int, r: int) -> int:
 	return int((abs(q) + abs(r) + abs(q + r)) / 2)
+
+# ---------- 클릭 처리 ----------
+func _handle_tile_click() -> void:
+	var mouse_screen: Vector2 = get_viewport().get_mouse_position()
+	var local: Vector2 = to_local(mouse_screen)
+	var af: Vector2 = _pixel_to_axial(local, hex_size, pointy_top)
+	var at: Vector2i = _axial_round(af.x, af.y)
+	
+	# 타일이 범위 내에 있는지 확인
+	var inside: bool = _axial_distance(at.x, at.y) <= radius
+	if not inside:
+		return
+	
+	# 타일 토글
+	_toggle_tile(at)
+
+func _toggle_tile(tile: Vector2i) -> void:
+	if _clicked_tiles.has(tile):
+		# 이미 클릭된 타일 - 제거
+		_clicked_tiles.erase(tile)
+		if _clicked_polys.has(tile):
+			var poly: Polygon2D = _clicked_polys[tile]
+			poly.queue_free()
+			_clicked_polys.erase(tile)
+	else:
+		# 새로 클릭된 타일 - 추가
+		_clicked_tiles[tile] = true
+		var poly: Polygon2D = Polygon2D.new()
+		poly.color = click_fill_color
+		poly.z_index = z_index_on_top + 1
+		
+		var center: Vector2 = _axial_to_pixel(tile.x, tile.y, hex_size, pointy_top)
+		var corners: PackedVector2Array = PackedVector2Array()
+		corners.resize(6)
+		for i in range(6):
+			corners[i] = center + _corner_off[i]
+		poly.polygon = corners
+		
+		add_child(poly)
+		_clicked_polys[tile] = poly
