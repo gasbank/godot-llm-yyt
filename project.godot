@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Dolki"
-run/main_scene="uid://bmhkxop36p8c"
+run/main_scene="uid://7v5mt3hc3iq"
 config/features=PackedStringArray("4.4", "Mobile")
 config/icon="res://svg/icon.svg"
 
@@ -20,6 +20,11 @@ config/icon="res://svg/icon.svg"
 OllamaClient="*res://OllamaClient.gd"
 Utils="*res://Utils.gd"
 Delay="*res://Delay.gd"
+
+[display]
+
+window/size/viewport_width=3840
+window/size/viewport_height=2160
 
 [gui]
 
