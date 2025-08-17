@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://igcxmetxh765"]
+
+[node name="Ore" type="Polygon2D"]
+color = Color(0.4, 0.8, 1, 1)
+polygon = PackedVector2Array(-3, -4, -1, -5, 1, -5, 3, -4, 4, -2, 4, 0, 3, 2, 2, 4, 0, 5, -2, 4, -3, 2, -4, 0, -4, -2)
+
+[node name="InnerGem" type="Polygon2D" parent="."]
+color = Color(0.7, 0.9, 1, 0.8)
+polygon = PackedVector2Array(-1.5, -2, 0, -3, 1.5, -2, 2, 0, 1.5, 2, 0, 3, -1.5, 2, -2, 0)
+
+[node name="Highlight" type="Polygon2D" parent="."]
+color = Color(1, 1, 1, 0.6)
+polygon = PackedVector2Array(-2, -3, -0.5, -3.5, 0.5, -3.5, 2, -3, 1, -1, -1, -1)

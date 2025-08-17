@@ -29,6 +29,11 @@ extends Node2D
 # === 클릭 토글 설정 ===
 @export var click_fill_color: Color = Color(0.0, 0.5, 1.0, 0.6)  # 파란색
 
+# === 광물 배치 설정 ===
+@export var ore_count: int = 100                                  # 배치할 광물 개수
+@export var min_ore_distance: int = 3                             # 광물 간 최소 거리
+@export var ore_scene: PackedScene = preload("res://ore.tscn")    # 광물 씬
+
 const SQRT3: float = 1.7320508075688772
 
 var _mesh_instance: MeshInstance2D
@@ -46,6 +51,10 @@ var _hover_tile: Vector2i = Vector2i(2147483647, 2147483647)      # 불가능한
 # 클릭된 타일들 저장
 var _clicked_tiles: Dictionary = {}  # Vector2i -> bool
 var _clicked_polys: Dictionary = {}  # Vector2i -> Polygon2D
+
+# 광물 관리
+var _ore_positions: Array[Vector2i] = []  # 광물이 배치된 타일 좌표
+var _ore_instances: Array[Node2D] = []    # 광물 인스턴스들
 
 func _ready() -> void:
 	if center_in_viewport:
@@ -68,6 +77,9 @@ func _ready() -> void:
 
 	_apply_zoom()
 	_update_hover_fill()
+	
+	# 광물 배치
+	_place_ores()
 
 func _unhandled_input(event: InputEvent) -> void:
 	# === 줌 ===
@@ -354,3 +366,67 @@ func _toggle_tile(tile: Vector2i) -> void:
 		
 		add_child(poly)
 		_clicked_polys[tile] = poly
+
+# ---------- 광물 배치 ----------
+func _place_ores() -> void:
+	if not ore_scene:
+		print("광물 씬이 설정되지 않았습니다")
+		return
+	
+	# 유효한 타일 목록 생성
+	var valid_tiles: Array[Vector2i] = []
+	for rr in range(-radius, radius + 1):
+		var q_min: int = max(-radius, -rr - radius)
+		var q_max: int = min(radius, -rr + radius)
+		for qq in range(q_min, q_max + 1):
+			valid_tiles.append(Vector2i(qq, rr))
+	
+	# 균등 분산 알고리즘으로 광물 배치
+	_ore_positions = _distribute_ores_evenly(valid_tiles, ore_count, min_ore_distance)
+	
+	# 광물 인스턴스 생성
+	for pos in _ore_positions:
+		var ore_instance: Node2D = ore_scene.instantiate()
+		var world_pos: Vector2 = _axial_to_pixel(pos.x, pos.y, hex_size, pointy_top)
+		ore_instance.position = world_pos
+		ore_instance.z_index = z_index_on_top + 3
+		add_child(ore_instance)
+		_ore_instances.append(ore_instance)
+
+func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int) -> Array[Vector2i]:
+	var selected: Array[Vector2i] = []
+	var attempts: int = 0
+	var max_attempts: int = count * 50  # 무한 루프 방지
+	
+	# 첫 번째 광물은 중심 근처에 배치
+	if valid_tiles.size() > 0:
+		var center_candidates: Array[Vector2i] = []
+		for tile in valid_tiles:
+			if _axial_distance(tile.x, tile.y) <= radius / 4:
+				center_candidates.append(tile)
+		
+		if center_candidates.size() > 0:
+			selected.append(center_candidates[randi() % center_candidates.size()])
+		else:
+			selected.append(valid_tiles[randi() % valid_tiles.size()])
+	
+	# 나머지 광물들을 균등하게 분산 배치
+	while selected.size() < count and attempts < max_attempts:
+		attempts += 1
+		var candidate: Vector2i = valid_tiles[randi() % valid_tiles.size()]
+		
+		# 최소 거리 확인
+		var too_close: bool = false
+		for existing in selected:
+			if _axial_distance_between(candidate, existing) < min_distance:
+				too_close = true
+				break
+		
+		if not too_close:
+			selected.append(candidate)
+	
+	print("광물 %d개 배치 완료 (%d번 시도)" % [selected.size(), attempts])
+	return selected
+
+func _axial_distance_between(a: Vector2i, b: Vector2i) -> int:
+	return int((abs(a.x - b.x) + abs(a.x + a.y - b.x - b.y) + abs(a.y - b.y)) / 2)
