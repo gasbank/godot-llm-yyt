@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://co14df0rtvkvj"]
+
+[ext_resource type="PackedScene" uid="uid://7v5mt3hc3iq" path="res://universe.tscn" id="1_universe"]
+[ext_resource type="PackedScene" path="res://hex_ui.tscn" id="2_ui"]
+
+[node name="UniverseGame" type="Node2D"]
+
+[node name="Universe" parent="." instance=ExtResource("1_universe")]
+
+[node name="HexUI" parent="." instance=ExtResource("2_ui")]
+z_index = 2000
+grow_horizontal = 2
+grow_vertical = 2

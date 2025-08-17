@@ -23,10 +23,14 @@ func _ready() -> void:
 	
 	add_child(_coord_label)
 	
-	# HexTileAllBorders 찾기 (같은 부모의 Node2D)
-	_hex_grid = get_parent()
-	if not _hex_grid or not _hex_grid.has_method("_pixel_to_axial"):
-		print("HexTileAllBorders 노드를 찾을 수 없습니다")
+	# HexTileAllBorders 찾기 (Universe 씬의 Node2D)
+	var parent = get_parent()  # UniverseGame
+	if parent:
+		_hex_grid = parent.get_node("Universe")  # Universe 인스턴스
+		if not _hex_grid or not _hex_grid.has_method("_pixel_to_axial"):
+			print("HexTileAllBorders 노드를 찾을 수 없습니다")
+	else:
+		print("부모 노드를 찾을 수 없습니다")
 
 func _input(event: InputEvent) -> void:
 	# 마우스 움직임 이벤트만 처리
