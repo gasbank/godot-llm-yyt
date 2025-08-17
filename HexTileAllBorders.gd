@@ -35,6 +35,12 @@ extends Node2D
 @export var ore_random_seed: int = 1985                           # 광물 배치 랜덤 시드
 @export var ore_scene: PackedScene = preload("res://ore.tscn")    # 광물 씬
 
+# === 행성 배치 설정 ===
+@export var planet_count: int = 30                                # 배치할 행성 개수
+@export var min_planet_distance: int = 8                          # 행성 간 최소 거리
+@export var planet_random_seed: int = 2023                        # 행성 배치 랜덤 시드
+@export var planet_scene: PackedScene = preload("res://planet.tscn") # 행성 씬
+
 # === 뷰포트 상태 저장 설정 ===
 @export var save_viewport_state: bool = true                      # 뷰포트 상태 저장 여부
 var _config_file_path: String = "user://viewport_state.cfg"       # 설정 파일 경로
@@ -61,6 +67,11 @@ var _clicked_polys: Dictionary = {}  # Vector2i -> Polygon2D
 # 광물 관리
 var _ore_positions: Array[Vector2i] = []  # 광물이 배치된 타일 좌표
 var _ore_instances: Array[Node2D] = []    # 광물 인스턴스들
+
+# 행성 관리
+var _planet_positions: Array[Vector2i] = []  # 행성이 배치된 중심 타일 좌표
+var _planet_instances: Array[Node2D] = []    # 행성 인스턴스들
+var _occupied_tiles: Dictionary = {}         # 모든 점유된 타일 (광물 + 행성)
 
 func _ready() -> void:
 	if center_in_viewport:
@@ -91,7 +102,10 @@ func _ready() -> void:
 	_apply_zoom()
 	_update_hover_fill()
 	
-	# 광물 배치
+	# 행성 먼저 배치 (크기가 크므로)
+	_place_planets()
+	
+	# 광물 배치 (행성 위치를 피해서)
 	_place_ores()
 	
 	# 저장된 뷰포트 상태 복원
@@ -395,13 +409,15 @@ func _place_ores() -> void:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = ore_random_seed
 	
-	# 유효한 타일 목록 생성
+	# 유효한 타일 목록 생성 (점유되지 않은 타일만)
 	var valid_tiles: Array[Vector2i] = []
 	for rr in range(-radius, radius + 1):
 		var q_min: int = max(-radius, -rr - radius)
 		var q_max: int = min(radius, -rr + radius)
 		for qq in range(q_min, q_max + 1):
-			valid_tiles.append(Vector2i(qq, rr))
+			var tile = Vector2i(qq, rr)
+			if not _occupied_tiles.has(tile):
+				valid_tiles.append(tile)
 	
 	# 균등 분산 알고리즘으로 광물 배치
 	_ore_positions = _distribute_ores_evenly(valid_tiles, ore_count, min_ore_distance, rng)
@@ -414,6 +430,9 @@ func _place_ores() -> void:
 		ore_instance.z_index = z_index_on_top + 3
 		add_child(ore_instance)
 		_ore_instances.append(ore_instance)
+		
+		# 점유된 타일로 마킹
+		_occupied_tiles[pos] = true
 
 func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int, rng: RandomNumberGenerator) -> Array[Vector2i]:
 	var selected: Array[Vector2i] = []
@@ -452,6 +471,97 @@ func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_dista
 
 func _axial_distance_between(a: Vector2i, b: Vector2i) -> int:
 	return int((abs(a.x - b.x) + abs(a.x + a.y - b.x - b.y) + abs(a.y - b.y)) / 2)
+
+# ---------- 행성 배치 ----------
+func _place_planets() -> void:
+	if not planet_scene:
+		print("행성 씬이 설정되지 않았습니다")
+		return
+	
+	# 랜덤 시드 설정
+	var rng = RandomNumberGenerator.new()
+	rng.seed = planet_random_seed
+	
+	# 유효한 타일 목록 생성
+	var valid_tiles: Array[Vector2i] = []
+	for rr in range(-radius, radius + 1):
+		var q_min: int = max(-radius, -rr - radius)
+		var q_max: int = min(radius, -rr + radius)
+		for qq in range(q_min, q_max + 1):
+			valid_tiles.append(Vector2i(qq, rr))
+	
+	# 행성 배치
+	_planet_positions = _distribute_planets_evenly(valid_tiles, planet_count, min_planet_distance, rng)
+	
+	# 행성 색상 목록
+	var planet_colors = [
+		{"main": Color(0.8, 0.3, 0.2), "surface": Color(0.9, 0.5, 0.3), "atmosphere": Color(1.0, 0.6, 0.4, 0.3)},  # 화성
+		{"main": Color(0.2, 0.4, 0.8), "surface": Color(0.3, 0.6, 0.9), "atmosphere": Color(0.5, 0.8, 1.0, 0.3)},  # 지구
+		{"main": Color(0.6, 0.4, 0.2), "surface": Color(0.7, 0.5, 0.3), "atmosphere": Color(0.8, 0.6, 0.4, 0.3)},  # 사막
+		{"main": Color(0.3, 0.7, 0.3), "surface": Color(0.4, 0.8, 0.4), "atmosphere": Color(0.6, 1.0, 0.6, 0.3)},  # 숲
+		{"main": Color(0.5, 0.3, 0.7), "surface": Color(0.6, 0.4, 0.8), "atmosphere": Color(0.7, 0.5, 0.9, 0.3)},  # 신비
+		{"main": Color(0.7, 0.7, 0.3), "surface": Color(0.8, 0.8, 0.4), "atmosphere": Color(0.9, 0.9, 0.5, 0.3)},  # 가스
+	]
+	
+	# 행성 인스턴스 생성
+	for i in range(_planet_positions.size()):
+		var pos = _planet_positions[i]
+		var planet_instance: Node2D = planet_scene.instantiate()
+		var world_pos: Vector2 = _axial_to_pixel(pos.x, pos.y, hex_size, pointy_top)
+		planet_instance.position = world_pos
+		planet_instance.z_index = z_index_on_top + 1
+		
+		# 행성 반경 설정 (1-5 랜덤)
+		var planet_radius = rng.randi_range(1, 5)
+		planet_instance.planet_radius = planet_radius
+		
+		# 행성 색상 설정 (랜덤)
+		var color_set = planet_colors[rng.randi() % planet_colors.size()]
+		planet_instance.planet_color = color_set.main
+		planet_instance.surface_color = color_set.surface
+		planet_instance.atmosphere_color = color_set.atmosphere
+		
+		# 헥스 크기 설정
+		planet_instance.set_hex_size(hex_size)
+		
+		add_child(planet_instance)
+		_planet_instances.append(planet_instance)
+		
+		# 행성이 점유하는 모든 타일 마킹
+		for occupied_tile in _get_planet_occupied_tiles(pos, planet_radius):
+			_occupied_tiles[occupied_tile] = true
+
+func _distribute_planets_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int, rng: RandomNumberGenerator) -> Array[Vector2i]:
+	var selected: Array[Vector2i] = []
+	var attempts: int = 0
+	var max_attempts: int = count * 100
+	
+	while selected.size() < count and attempts < max_attempts:
+		attempts += 1
+		var candidate: Vector2i = valid_tiles[rng.randi() % valid_tiles.size()]
+		
+		# 다른 행성들과의 최소 거리 확인
+		var too_close: bool = false
+		for existing in selected:
+			if _axial_distance_between(candidate, existing) < min_distance:
+				too_close = true
+				break
+		
+		if not too_close:
+			selected.append(candidate)
+	
+	print("행성 %d개 배치 완료 (%d번 시도)" % [selected.size(), attempts])
+	return selected
+
+func _get_planet_occupied_tiles(center: Vector2i, planet_radius: int) -> Array[Vector2i]:
+	var occupied: Array[Vector2i] = []
+	for rr in range(-planet_radius, planet_radius + 1):
+		for qq in range(-planet_radius, planet_radius + 1):
+			var tile = center + Vector2i(qq, rr)
+			var hex_distance = int((abs(qq) + abs(rr) + abs(qq + rr)) / 2)
+			if hex_distance <= planet_radius:
+				occupied.append(tile)
+	return occupied
 
 # ---------- 뷰포트 상태 저장/로드 ----------
 func _save_viewport_state() -> void:

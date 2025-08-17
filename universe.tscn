@@ -7,9 +7,3 @@ script = ExtResource("1_ksisf")
 hex_size = 8.0
 line_width = 1.0
 line_color = Color(0.133333, 0.133333, 0.133333, 1)
-
-[node name="Polygon2D" type="Polygon2D" parent="."]
-position = Vector2(644, 825)
-scale = Vector2(0.579047, 0.710125)
-polygon = PackedVector2Array(55.1182, -5.11078, -122.415, -55.2378, -464.949, 61.7253, -174.63, 210.018, 203.411, 151.536, 155.373, 49.1935)
-uv = PackedVector2Array(55.1182, -5.11078, -122.415, -55.2378, -464.949, 61.7253, -174.63, 210.018, 203.411, 151.536, 155.373, 49.1935)
