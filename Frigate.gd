@@ -14,6 +14,7 @@ var max_capacity: int = 1      # 최대 적재량
 
 var state: State = State.IDLE
 var hex_grid: Node2D          # HexTileAllBorders 참조
+var debug_logs: bool = false  # 디버그 로그 출력 여부
 
 # 신호
 signal turn_action_completed  # 턴 액션 완료 신호
@@ -141,7 +142,8 @@ func _create_cargo_indicator():
 		add_child(empty_cargo)
 
 func process_turn():
-	print("우주선 상태: %s, 위치: %s, 목표: %s" % [State.keys()[state], current_tile, target_tile])
+	if debug_logs:
+		print("우주선 상태: %s, 위치: %s, 목표: %s" % [State.keys()[state], current_tile, target_tile])
 	
 	match state:
 		State.IDLE:
@@ -184,20 +186,24 @@ func _find_nearest_ore(exclude_tile: Vector2i = Vector2i(-999999, -999999)):
 		path = _find_path(current_tile, target_tile)
 		if path.size() > 0:
 			state = State.MOVING_TO_ORE
-			print("새로운 목표 광물 설정: %s (거리: %d)" % [target_tile, min_distance])
+			if debug_logs:
+				print("새로운 목표 광물 설정: %s (거리: %d)" % [target_tile, min_distance])
 		else:
-			print("목표 광물로의 경로를 찾을 수 없음: %s" % target_tile)
+			if debug_logs:
+				print("목표 광물로의 경로를 찾을 수 없음: %s" % target_tile)
 			_return_to_home_planet()
 	else:
 		# 채집 가능한 광물이 없으면 소속 행성으로 복귀
-		print("채집 가능한 광물이 없습니다 - 소속 행성으로 복귀")
+		if debug_logs:
+			print("채집 가능한 광물이 없습니다 - 소속 행성으로 복귀")
 		_return_to_home_planet()
 	
 	turn_action_completed.emit()
 
 func _move_along_path():
 	if path.size() == 0:
-		print("경로가 비어있음 - 도착 처리 또는 재계산 필요")
+		if debug_logs:
+			print("경로가 비어있음 - 도착 처리 또는 재계산 필요")
 		_handle_arrival()
 		return
 	
@@ -251,7 +257,8 @@ func _handle_arrival():
 				# 광물이 여전히 사용 가능한지 확인
 				if hex_grid.is_ore_being_mined(target_tile):
 					# 다른 우주선이 채집 중이면 즉시 다른 광물 찾기 (턴 소모 없음)
-					print("우주선이 이미 채집 중인 광물에 도착 - 다른 광물 탐색")
+					if debug_logs:
+						print("우주선이 이미 채집 중인 광물에 도착 - 다른 광물 탐색")
 					_find_nearest_ore(target_tile)  # 현재 목표 타일 제외하고 탐색
 					return
 				else:
@@ -259,10 +266,12 @@ func _handle_arrival():
 					mining_started.emit(self, current_tile)
 			else:
 				# 목표에 도달하지 않았는데 경로가 끝남 - 경로 재계산
-				print("목표에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, target_tile])
+				if debug_logs:
+					print("목표에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, target_tile])
 				path = _find_path(current_tile, target_tile)
 				if path.size() == 0:
-					print("경로 재계산 실패 - 다른 광물 탐색")
+					if debug_logs:
+						print("경로 재계산 실패 - 다른 광물 탐색")
 					_find_nearest_ore(target_tile)
 					return
 		State.MOVING_TO_PLANET:
@@ -271,22 +280,27 @@ func _handle_arrival():
 				state = State.DEPOSITING
 			else:
 				# 목표에 도달하지 않았는데 경로가 끝남 - 경로 재계산
-				print("격납고에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_hangar_pos])
+				if debug_logs:
+					print("격납고에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_hangar_pos])
 				path = _find_path(current_tile, home_hangar_pos)
 				if path.size() == 0:
-					print("격납고로의 경로 재계산 실패")
+					if debug_logs:
+						print("격납고로의 경로 재계산 실패")
 					state = State.IDLE
 		State.RETURNING_HOME:
 			# 격납고에 도달했는지 확인
 			if current_tile == home_hangar_pos:
 				state = State.IDLE
-				print("우주선이 격납고에 복귀 완료")
+				if debug_logs:
+					print("우주선이 격납고에 복귀 완료")
 			else:
 				# 목표에 도달하지 않았는데 경로가 끝남 - 경로 재계산
-				print("격납고에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_hangar_pos])
+				if debug_logs:
+					print("격납고에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_hangar_pos])
 				path = _find_path(current_tile, home_hangar_pos)
 				if path.size() == 0:
-					print("격납고로의 경로 재계산 실패")
+					if debug_logs:
+						print("격납고로의 경로 재계산 실패")
 					state = State.IDLE
 	
 	turn_action_completed.emit()
@@ -362,7 +376,8 @@ func _find_path(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
 		# 사용 가능한 이동이 없으면 중단
 		if move_options.size() == 0:
 			stuck_count += 1
-			print("경로 찾기 중 막힘 발생 (시도 %d회)" % stuck_count)
+			if debug_logs:
+				print("경로 찾기 중 막힘 발생 (시도 %d회)" % stuck_count)
 			# 즉시 포기하고 다른 방법 시도
 			break
 		
@@ -375,7 +390,8 @@ func _find_path(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
 		path_result.append(current)
 	
 	if path_result.size() == 0:
-		print("경로를 찾을 수 없음: %s -> %s" % [start, end])
+		if debug_logs:
+			print("경로를 찾을 수 없음: %s -> %s" % [start, end])
 	
 	return path_result
 
@@ -431,17 +447,20 @@ func _return_to_home_planet():
 	if current_tile == home_hangar_pos:
 		# 이미 격납고에 있으면 대기 상태
 		state = State.IDLE
-		print("우주선이 이미 격납고에 있습니다")
+		if debug_logs:
+			print("우주선이 이미 격납고에 있습니다")
 	else:
 		# 격납고로 이동 경로 설정
 		target_tile = home_hangar_pos
 		path = _find_path(current_tile, target_tile)
 		if path.size() > 0:
 			state = State.RETURNING_HOME
-			print("격납고로 복귀 중: %s" % home_hangar_pos)
+			if debug_logs:
+				print("격납고로 복귀 중: %s" % home_hangar_pos)
 		else:
 			state = State.IDLE
-			print("격납고로의 경로를 찾을 수 없습니다")
+			if debug_logs:
+				print("격납고로의 경로를 찾을 수 없습니다")
 
 func _hex_distance(a: Vector2i, b: Vector2i) -> int:
 	return int((abs(a.x - b.x) + abs(a.x + a.y - b.x - b.y) + abs(a.y - b.y)) / 2)

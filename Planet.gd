@@ -17,6 +17,9 @@ var base_scale: Vector2 = Vector2.ONE  # 기본 스케일
 var facilities: Dictionary = {}  # 타일 위치별 시설물 매핑 (Vector2i -> Node2D)
 var hangar_position: Vector2i  # 격납고 위치
 
+# 신호
+signal facility_popup_requested(facility_name: String, planet_name: String)
+
 func _ready():
 	base_scale = get_parent().scale if get_parent() else Vector2.ONE
 	_create_planet_visuals()
@@ -205,6 +208,10 @@ func create_hangar(tile_position: Vector2i):
 	hangar_instance.position = relative_pos
 	hangar_instance.z_index = 10  # 행성 위에 표시되도록
 	
+	# 격납고에 행성 이름 설정 및 신호 연결
+	hangar_instance.set_planet_name(planet_name)
+	hangar_instance.facility_clicked.connect(_on_facility_clicked)
+	
 	add_child(hangar_instance)
 
 func get_hangar_position() -> Vector2i:
@@ -232,3 +239,8 @@ func place_hangar_randomly(planet_center: Vector2i):
 		var absolute_tile = planet_center + relative_tile
 		create_hangar(relative_tile)  # 시각적 표시는 상대 좌표 사용
 		hangar_position = absolute_tile  # 실제 격납고 위치는 절대 좌표
+
+func _on_facility_clicked(facility_name: String, planet_name_from_facility: String):
+	print("Planet received facility click signal: ", facility_name, " on planet: ", planet_name)
+	# 시설물 클릭 시 팝업 요청 신호 발송
+	facility_popup_requested.emit(facility_name, planet_name)

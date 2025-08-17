@@ -1,6 +1,9 @@
-[gd_scene load_steps=0 format=3 uid="uid://bq8v5xr3h2m1n"]
+[gd_scene load_steps=2 format=3 uid="uid://bq8v5xr3h2m1n"]
+
+[ext_resource type="Script" path="res://Hangar.gd" id="1_hangar"]
 
 [node name="Hangar" type="Polygon2D"]
+script = ExtResource("1_hangar")
 color = Color(0.6, 0.6, 0.7, 1)
 polygon = PackedVector2Array(-4, -3, 4, -3, 4, 3, -4, 3)
 

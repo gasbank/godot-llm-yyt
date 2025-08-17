@@ -53,6 +53,9 @@ extends Node2D
 @export var turn_duration: float = 1.0                           # 턴당 시간 (초)
 @export var auto_play: bool = true                               # 자동 진행 여부
 
+# === 디버그 설정 ===
+@export var debug_logs: bool = false                             # 디버그 로그 출력 여부
+
 # === 뷰포트 상태 저장 설정 ===
 @export var save_viewport_state: bool = true                      # 뷰포트 상태 저장 여부
 var _config_file_path: String = "user://viewport_state.cfg"       # 설정 파일 경로
@@ -90,6 +93,11 @@ var _planet_cell_polys: Array[Polygon2D] = [] # 행성 셀 표시용 폴리곤�
 # 우주선 관리
 var _frigate_instances: Array[Node2D] = []   # 우주선 인스턴스들
 var _frigate_positions: Dictionary = {}      # 우주선 위치 추적 (Vector2i -> Node2D)
+
+# 팝업 관리
+var _facility_popups: Array[Control] = []    # 시설물 팝업들
+var _popup_scene: PackedScene = preload("res://FacilityPopup.tscn")
+var _popup_layer: CanvasLayer = null         # 팝업을 위한 CanvasLayer
 var _mining_tiles: Dictionary = {}           # 채집 중인 타일 (Vector2i -> Node2D)
 
 # 턴 시스템
@@ -147,8 +155,53 @@ func _ready() -> void:
 	
 	# 저장된 뷰포트 상태 복원
 	_load_viewport_state()
+	
+	# 팝업 레이어 초기화
+	_setup_popup_layer()
 
 func _unhandled_input(event: InputEvent) -> void:
+	# 우클릭 감지 및 격납고 체크 (우선 처리)
+	if event is InputEventMouseButton:
+		var mb = event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed:
+			print("Global right click detected at: ", get_global_mouse_position())
+			if _check_hangar_click_at_position(get_global_mouse_position()):
+				return  # 격납고 클릭이었다면 다른 처리 건너뛰기
+	
+	# 기존 _unhandled_input 기능 호출
+	_unhandled_input_original(event)
+
+func _check_hangar_click_at_position(global_pos: Vector2) -> bool:
+	# 마우스 위치를 로컬 좌표로 변환 (확대/축소, 패닝 고려)
+	var local_pos = to_local(global_pos)
+	print("Global mouse pos: ", global_pos, " -> Local pos: ", local_pos)
+	
+	# 클릭된 헥스 타일 좌표 계산
+	var clicked_tile_float = _pixel_to_axial(local_pos, hex_size, pointy_top)
+	var clicked_tile = Vector2i(int(round(clicked_tile_float.x)), int(round(clicked_tile_float.y)))
+	print("Clicked tile: ", clicked_tile)
+	
+	# 모든 행성의 격납고를 체크
+	for i in range(_planet_instances.size()):
+		var planet_instance = _planet_instances[i]
+		var hangar_pos = planet_instance.get_hangar_position()
+		
+		print("Checking hangar at tile: ", hangar_pos, " planet: ", planet_instance.planet_name)
+		
+		# 클릭한 타일과 격납고 타일이 같은지 체크
+		if clicked_tile == hangar_pos:
+			print("Hangar clicked via tile detection at planet: ", planet_instance.planet_name)
+			_on_facility_popup_requested("Hangar", planet_instance.planet_name)
+			return true
+	return false
+
+func _setup_popup_layer():
+	# CanvasLayer를 생성하여 팝업이 모든 것 위에 표시되도록 함
+	_popup_layer = CanvasLayer.new()
+	_popup_layer.layer = 100  # 높은 레이어 값으로 최상위에 표시
+	get_tree().current_scene.add_child(_popup_layer)
+
+func _unhandled_input_original(event: InputEvent) -> void:
 	# === 줌 ===
 	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
 		var mb: InputEventMouseButton = event as InputEventMouseButton
@@ -361,6 +414,7 @@ func _axial_to_pixel(q: float, r: float, s: float, pointy: bool) -> Vector2:
 			s * ((SQRT3 * 0.5) * q + SQRT3 * r)
 		)
 
+
 func _pixel_to_axial(p: Vector2, s: float, pointy: bool) -> Vector2:
 	if pointy:
 		var q: float = ((SQRT3 / 3.0) * p.x - (1.0 / 3.0) * p.y) / s
@@ -503,11 +557,62 @@ func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_dista
 		if not too_close:
 			selected.append(candidate)
 	
-	print("광물 %d개 배치 완료 (%d번 시도)" % [selected.size(), attempts])
+	if debug_logs:
+		print("광물 %d개 배치 완료 (%d번 시도)" % [selected.size(), attempts])
 	return selected
 
 func _axial_distance_between(a: Vector2i, b: Vector2i) -> int:
 	return int((abs(a.x - b.x) + abs(a.x + a.y - b.x - b.y) + abs(a.y - b.y)) / 2)
+
+# 팝업 관리 함수들
+func _on_facility_popup_requested(facility_name: String, planet_name: String):
+	print("HexTileAllBorders received popup request: ", facility_name, " on planet: ", planet_name)
+	
+	# 동일한 시설물에 대한 팝업이 이미 있는지 확인
+	var popup_key = facility_name + "_" + planet_name
+	for popup in _facility_popups:
+		if popup.facility_name == facility_name and popup.planet_name == planet_name:
+			print("Popup already exists for ", facility_name, " on ", planet_name)
+			# 기존 팝업을 최상위로 가져오기
+			popup.get_parent().move_child(popup, -1)
+			popup.z_index = 10000
+			return
+	
+	# 새 팝업 생성
+	var popup_instance = _popup_scene.instantiate()
+	popup_instance.setup_popup(facility_name, planet_name)
+	
+	# 팝업 위치를 기존 팝업들과 겹치지 않도록 설정
+	var popup_offset = Vector2(20, 20) * _facility_popups.size()
+	popup_instance.position = popup_instance.position + popup_offset
+	
+	# 팝업 닫기 신호 연결
+	popup_instance.popup_closed.connect(_on_popup_closed)
+	
+	# 팝업을 CanvasLayer에 추가 (모든 것보다 위에 표시)
+	if _popup_layer:
+		_popup_layer.add_child(popup_instance)
+	else:
+		get_tree().current_scene.add_child(popup_instance)
+	_facility_popups.append(popup_instance)
+	print("Popup created and added to scene")
+
+func _on_popup_closed(popup: Control):
+	# 팝업 목록에서 제거
+	_facility_popups.erase(popup)
+
+func _unhandled_key_input(event: InputEvent):
+	# DELETE 키로 모든 팝업 닫기
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_DELETE:
+			_close_all_popups()
+
+func _close_all_popups():
+	# 모든 팝업 닫기
+	for popup in _facility_popups:
+		if is_instance_valid(popup):
+			popup.queue_free()
+	_facility_popups.clear()
 
 # ---------- 행성 배치 ----------
 func _place_planets() -> void:
@@ -584,6 +689,9 @@ func _place_planets() -> void:
 		var planet_name = planet_names[rng.randi() % planet_names.size()]
 		planet_instance.set_planet_name(planet_name)
 		
+		# 시설물 팝업 요청 신호 연결
+		planet_instance.facility_popup_requested.connect(_on_facility_popup_requested)
+		
 		add_child(planet_instance)
 		_planet_instances.append(planet_instance)
 		
@@ -620,7 +728,8 @@ func _distribute_planets_evenly(valid_tiles: Array[Vector2i], count: int, min_di
 		if not too_close:
 			selected.append(candidate)
 	
-	print("행성 %d개 배치 완료 (%d번 시도)" % [selected.size(), attempts])
+	if debug_logs:
+		print("행성 %d개 배치 완료 (%d번 시도)" % [selected.size(), attempts])
 	return selected
 
 func _create_planet_cell_display(planet_center: Vector2i, planet_radius: int):
@@ -689,6 +798,7 @@ func _place_frigates() -> void:
 		frigate_instance.set_home_planet(planet_pos)
 		frigate_instance.set_home_hangar(frigate_pos)
 		frigate_instance.set_hex_grid(self)
+		frigate_instance.debug_logs = debug_logs
 		
 		# 신호 연결
 		frigate_instance.turn_action_completed.connect(_on_frigate_turn_completed)
@@ -731,7 +841,8 @@ func _process_turn() -> void:
 	for frigate in _frigate_instances:
 		frigate.process_turn()
 	
-	print("턴 %d 시작 - 우주선 %d대 작업 중" % [_current_turn, _frigate_instances.size()])
+	if debug_logs:
+		print("턴 %d 시작 - 우주선 %d대 작업 중" % [_current_turn, _frigate_instances.size()])
 
 func _on_frigate_turn_completed() -> void:
 	_frigates_ready += 1
@@ -753,7 +864,8 @@ func _on_ore_collected(frigate: Node2D, ore_pos: Vector2i) -> void:
 		# 점유 타일에서도 제거
 		_occupied_tiles.erase(ore_pos)
 		
-		print("광물 채집됨: %s" % ore_pos)
+		if debug_logs:
+			print("광물 채집됨: %s" % ore_pos)
 
 func _on_ore_deposited(frigate: Node2D, planet_pos: Vector2i, amount: int) -> void:
 	# 행성에 자원 추가
@@ -768,7 +880,8 @@ func _on_ore_deposited(frigate: Node2D, planet_pos: Vector2i, amount: int) -> vo
 		var planet_instance = _planet_instances[planet_index]
 		planet_instance.set_resource_count(_planet_resources[planet_pos])
 	
-	print("행성 %s에 광물 %d개 저장됨 (총 %d개)" % [planet_pos, amount, _planet_resources[planet_pos]])
+	if debug_logs:
+		print("행성 %s에 광물 %d개 저장됨 (총 %d개)" % [planet_pos, amount, _planet_resources[planet_pos]])
 
 func _on_frigate_moved(frigate: Node2D, old_pos: Vector2i, new_pos: Vector2i) -> void:
 	# 우주선 위치 업데이트
