@@ -1,0 +1,33 @@
+[gd_scene load_steps=0 format=3 uid="uid://bq8v5xr3h2m1n"]
+
+[node name="Hangar" type="Polygon2D"]
+color = Color(0.6, 0.6, 0.7, 1)
+polygon = PackedVector2Array(-4, -3, 4, -3, 4, 3, -4, 3)
+
+[node name="Entrance" type="Polygon2D" parent="."]
+color = Color(0.3, 0.3, 0.4, 1)
+polygon = PackedVector2Array(-2, -3, 2, -3, 2, -1, -2, -1)
+
+[node name="Door1" type="Polygon2D" parent="."]
+color = Color(0.8, 0.8, 0.9, 1)
+polygon = PackedVector2Array(-1.5, -3, -0.5, -3, -0.5, -1, -1.5, -1)
+
+[node name="Door2" type="Polygon2D" parent="."]
+color = Color(0.8, 0.8, 0.9, 1)
+polygon = PackedVector2Array(0.5, -3, 1.5, -3, 1.5, -1, 0.5, -1)
+
+[node name="Interior" type="Polygon2D" parent="."]
+color = Color(0.4, 0.4, 0.5, 0.8)
+polygon = PackedVector2Array(-3, -2, 3, -2, 3, 2, -3, 2)
+
+[node name="Lights" type="Polygon2D" parent="."]
+color = Color(0.9, 0.9, 1, 0.7)
+polygon = PackedVector2Array(-3, 2, -2, 2, -2, 2.5, -3, 2.5)
+
+[node name="Lights2" type="Polygon2D" parent="."]
+color = Color(0.9, 0.9, 1, 0.7)
+polygon = PackedVector2Array(2, 2, 3, 2, 3, 2.5, 2, 2.5)
+
+[node name="LaunchPad" type="Polygon2D" parent="."]
+color = Color(0.2, 0.3, 0.8, 0.6)
+polygon = PackedVector2Array(-1, 0, 1, 0, 1, 1, -1, 1)

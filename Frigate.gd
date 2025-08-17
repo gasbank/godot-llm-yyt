@@ -5,6 +5,7 @@ enum State { IDLE, MOVING_TO_ORE, MINING, MOVING_TO_PLANET, DEPOSITING, RETURNIN
 
 var hex_size: float = 10.0
 var home_planet_pos: Vector2i  # 소속 행성 위치
+var home_hangar_pos: Vector2i  # 소속 격납고 위치
 var current_tile: Vector2i     # 현재 타일 위치
 var target_tile: Vector2i      # 목표 타일 위치
 var path: Array[Vector2i] = [] # 이동 경로
@@ -32,7 +33,10 @@ func set_hex_size(size: float):
 
 func set_home_planet(planet_pos: Vector2i):
 	home_planet_pos = planet_pos
-	current_tile = planet_pos
+
+func set_home_hangar(hangar_pos: Vector2i):
+	home_hangar_pos = hangar_pos
+	current_tile = hangar_pos
 
 func set_hex_grid(grid: Node2D):
 	hex_grid = grid
@@ -262,27 +266,27 @@ func _handle_arrival():
 					_find_nearest_ore(target_tile)
 					return
 		State.MOVING_TO_PLANET:
-			# 행성 영역 내에 도달했는지 확인
-			if _is_in_planet_area(current_tile, home_planet_pos):
+			# 격납고에 도달했는지 확인
+			if current_tile == home_hangar_pos:
 				state = State.DEPOSITING
 			else:
 				# 목표에 도달하지 않았는데 경로가 끝남 - 경로 재계산
-				print("행성에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_planet_pos])
-				path = _find_path(current_tile, home_planet_pos)
+				print("격납고에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_hangar_pos])
+				path = _find_path(current_tile, home_hangar_pos)
 				if path.size() == 0:
-					print("행성으로의 경로 재계산 실패")
+					print("격납고로의 경로 재계산 실패")
 					state = State.IDLE
 		State.RETURNING_HOME:
-			# 소속 행성에 도달했는지 확인
-			if _is_in_planet_area(current_tile, home_planet_pos):
+			# 격납고에 도달했는지 확인
+			if current_tile == home_hangar_pos:
 				state = State.IDLE
-				print("우주선이 소속 행성에 복귀 완료")
+				print("우주선이 격납고에 복귀 완료")
 			else:
 				# 목표에 도달하지 않았는데 경로가 끝남 - 경로 재계산
-				print("소속 행성에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_planet_pos])
-				path = _find_path(current_tile, home_planet_pos)
+				print("격납고에 도달하지 않음. 경로 재계산: 현재=%s, 목표=%s" % [current_tile, home_hangar_pos])
+				path = _find_path(current_tile, home_hangar_pos)
 				if path.size() == 0:
-					print("소속 행성으로의 경로 재계산 실패")
+					print("격납고로의 경로 재계산 실패")
 					state = State.IDLE
 	
 	turn_action_completed.emit()
@@ -300,8 +304,8 @@ func _mine_ore():
 		mining_stopped.emit(self, current_tile)
 		_create_frigate_visuals()  # 광물 표시 업데이트
 		
-		# 다음 목표: 행성으로 돌아가기
-		target_tile = home_planet_pos
+		# 다음 목표: 격납고로 돌아가기
+		target_tile = home_hangar_pos
 		path = _find_path(current_tile, target_tile)
 		state = State.MOVING_TO_PLANET
 	
@@ -423,21 +427,21 @@ func _rotate_to_direction(from: Vector2i, to: Vector2i) -> void:
 	rotation_degrees = angle
 
 func _return_to_home_planet():
-	# 소속 행성으로 복귀
-	if current_tile == home_planet_pos or _is_in_planet_area(current_tile, home_planet_pos):
-		# 이미 소속 행성에 있으면 대기 상태
+	# 격납고로 복귀
+	if current_tile == home_hangar_pos:
+		# 이미 격납고에 있으면 대기 상태
 		state = State.IDLE
-		print("우주선이 이미 소속 행성에 있습니다")
+		print("우주선이 이미 격납고에 있습니다")
 	else:
-		# 소속 행성으로 이동 경로 설정
-		target_tile = home_planet_pos
+		# 격납고로 이동 경로 설정
+		target_tile = home_hangar_pos
 		path = _find_path(current_tile, target_tile)
 		if path.size() > 0:
 			state = State.RETURNING_HOME
-			print("소속 행성으로 복귀 중: %s" % home_planet_pos)
+			print("격납고로 복귀 중: %s" % home_hangar_pos)
 		else:
 			state = State.IDLE
-			print("소속 행성으로의 경로를 찾을 수 없습니다")
+			print("격납고로의 경로를 찾을 수 없습니다")
 
 func _hex_distance(a: Vector2i, b: Vector2i) -> int:
 	return int((abs(a.x - b.x) + abs(a.x + a.y - b.x - b.y) + abs(a.y - b.y)) / 2)

@@ -29,6 +29,11 @@ extends Node2D
 # === 클릭 토글 설정 ===
 @export var click_fill_color: Color = Color(0.0, 0.5, 1.0, 0.6)  # 파란색
 
+# === 행성 셀 구분 설정 ===
+@export var show_planet_cells: bool = true                      # 행성 셀 표시 여부
+@export var planet_cell_fill_color: Color = Color(0.2, 0.3, 0.1, 0.2)  # 연한 녹색
+@export var planet_cell_line_color: Color = Color(0.4, 0.6, 0.2, 0.8)  # 녹색 테두리
+
 # === 광물 배치 설정 ===
 @export var ore_count: int = 100                                  # 배치할 광물 개수
 @export var min_ore_distance: int = 3                             # 광물 간 최소 거리
@@ -80,6 +85,7 @@ var _planet_positions: Array[Vector2i] = []  # 행성이 배치된 중심 타일
 var _planet_instances: Array[Node2D] = []    # 행성 인스턴스들
 var _planet_resources: Dictionary = {}       # 행성별 보유 자원 (Vector2i -> int)
 var _occupied_tiles: Dictionary = {}         # 모든 점유된 타일 (광물 + 행성)
+var _planet_cell_polys: Array[Polygon2D] = [] # 행성 셀 표시용 폴리곤들
 
 # 우주선 관리
 var _frigate_instances: Array[Node2D] = []   # 우주선 인스턴스들
@@ -534,13 +540,32 @@ func _place_planets() -> void:
 		{"main": Color(0.7, 0.7, 0.3), "surface": Color(0.8, 0.8, 0.4), "atmosphere": Color(0.9, 0.9, 0.5, 0.3)},  # 가스
 	]
 	
+	# 행성 이름 목록
+	var planet_names = [
+		"Proxima", "Kepler", "Gliese", "Trappist", "Wolf", "Ross", "Tau", "HD",
+		"K2", "WASP", "CoRoT", "Upsilon", "Mu", "Epsilon", "Zeta", "Alpha",
+		"Beta", "Gamma", "Delta", "Theta", "Lambda", "Sigma", "Omega", "Nova",
+		"Stellar", "Cosmic", "Nebula", "Aurora", "Solaris", "Vega", "Altair",
+		"Sirius", "Rigel", "Betelgeuse", "Arcturus", "Aldebaran", "Spica", "Antares",
+		"Pollux", "Regulus", "Adhara", "Castor", "Gacrux", "Bellatrix", "Elnath",
+		"Miaplacidus", "Alnilam", "Alnair", "Alioth", "Dubhe", "Mirfak",
+		"Wezen", "Sargas", "Kaus", "Avior", "Alkaid", "Menkalinan", "Atria",
+		"Alhena", "Peacock", "Alsephina", "Mirzam", "Polaris", "Alphard",
+		"Hamal", "Diphda", "Nunki", "Menkent", "Mirach", "Alpheratz", "Rasalhague",
+		"Kochab", "Saiph", "Deneb", "Algol", "Tiaki", "Muhlifain", "Aspidiske",
+		"Suhail", "Alphecca", "Mintaka", "Sadr", "Eltanin", "Schedar", "Naos",
+		"Almach", "Caph", "Izar", "Dschubba", "Larawag", "Merak", "Ankaa",
+		"Girtab", "Enif", "Scheat", "Sabik", "Phecda", "Aludra", "Markeb",
+		"Navi", "Markab", "Aljanah", "Acrab"
+	]
+	
 	# 행성 인스턴스 생성
 	for i in range(_planet_positions.size()):
 		var pos = _planet_positions[i]
 		var planet_instance: Node2D = planet_scene.instantiate()
 		var world_pos: Vector2 = _axial_to_pixel(pos.x, pos.y, hex_size, pointy_top)
 		planet_instance.position = world_pos
-		planet_instance.z_index = z_index_on_top + 1
+		planet_instance.z_index = -10  # 타일맵 그리드보다 아래에 그리기
 		
 		# 행성 반경 설정 (1-5 랜덤)
 		var planet_radius = rng.randi_range(1, 5)
@@ -555,6 +580,10 @@ func _place_planets() -> void:
 		# 헥스 크기 설정
 		planet_instance.set_hex_size(hex_size)
 		
+		# 행성 이름 설정 (랜덤)
+		var planet_name = planet_names[rng.randi() % planet_names.size()]
+		planet_instance.set_planet_name(planet_name)
+		
 		add_child(planet_instance)
 		_planet_instances.append(planet_instance)
 		
@@ -564,6 +593,13 @@ func _place_planets() -> void:
 		
 		# 행성 자원 UI 초기화
 		planet_instance.set_resource_count(0)
+		
+		# 격납고 배치 (행성 타일 중 랜덤 선택)
+		planet_instance.place_hangar_randomly(pos)
+		
+		# 행성 셀 시각적 표시
+		if show_planet_cells:
+			_create_planet_cell_display(pos, planet_radius)
 
 func _distribute_planets_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int, rng: RandomNumberGenerator) -> Array[Vector2i]:
 	var selected: Array[Vector2i] = []
@@ -587,6 +623,38 @@ func _distribute_planets_evenly(valid_tiles: Array[Vector2i], count: int, min_di
 	print("행성 %d개 배치 완료 (%d번 시도)" % [selected.size(), attempts])
 	return selected
 
+func _create_planet_cell_display(planet_center: Vector2i, planet_radius: int):
+	"""행성에 속한 셀들을 시각적으로 구분하여 표시"""
+	var occupied_tiles = _get_planet_occupied_tiles(planet_center, planet_radius)
+	
+	for tile in occupied_tiles:
+		# 각 타일에 대한 폴리곤 생성
+		var poly = Polygon2D.new()
+		poly.color = planet_cell_fill_color
+		poly.z_index = -5  # 행성보다는 위에, 그리드보다는 아래에
+		
+		# 헥스 타일 모양 생성
+		var center = _axial_to_pixel(tile.x, tile.y, hex_size, pointy_top)
+		var corners = PackedVector2Array()
+		corners.resize(6)
+		for i in range(6):
+			corners[i] = center + _corner_off[i]
+		poly.polygon = corners
+		
+		# 테두리 추가
+		var line = Line2D.new()
+		line.default_color = planet_cell_line_color
+		line.width = 2.0
+		line.z_index = -4
+		line.closed = true
+		for corner in corners:
+			line.add_point(corner)
+		
+		add_child(poly)
+		add_child(line)
+		_planet_cell_polys.append(poly)
+		_planet_cell_polys.append(line)
+
 func _get_planet_occupied_tiles(center: Vector2i, planet_radius: int) -> Array[Vector2i]:
 	var occupied: Array[Vector2i] = []
 	for rr in range(-planet_radius, planet_radius + 1):
@@ -606,14 +674,9 @@ func _place_frigates() -> void:
 	for i in range(_planet_positions.size()):
 		var planet_pos = _planet_positions[i]
 		var planet_instance = _planet_instances[i]
-		var planet_radius = planet_instance.planet_radius
 		
-		# 행성의 가장 바깥 테두리 타일 중 랜덤 선택
-		var edge_tiles = _get_planet_edge_tiles(planet_pos, planet_radius)
-		if edge_tiles.size() == 0:
-			continue
-		
-		var frigate_pos = edge_tiles[randi() % edge_tiles.size()]
+		# 격납고 위치에서 우주선 생성 (절대 좌표 사용)
+		var frigate_pos = planet_instance.get_hangar_position()
 		
 		# 우주선 인스턴스 생성
 		var frigate_instance: Node2D = frigate_scene.instantiate()
@@ -624,8 +687,8 @@ func _place_frigates() -> void:
 		# 우주선 설정
 		frigate_instance.set_hex_size(hex_size)
 		frigate_instance.set_home_planet(planet_pos)
+		frigate_instance.set_home_hangar(frigate_pos)
 		frigate_instance.set_hex_grid(self)
-		frigate_instance.current_tile = frigate_pos
 		
 		# 신호 연결
 		frigate_instance.turn_action_completed.connect(_on_frigate_turn_completed)
