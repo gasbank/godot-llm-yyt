@@ -32,7 +32,13 @@ extends Node2D
 # === 광물 배치 설정 ===
 @export var ore_count: int = 100                                  # 배치할 광물 개수
 @export var min_ore_distance: int = 3                             # 광물 간 최소 거리
+@export var ore_random_seed: int = 1985                           # 광물 배치 랜덤 시드
 @export var ore_scene: PackedScene = preload("res://ore.tscn")    # 광물 씬
+
+# === 뷰포트 상태 저장 설정 ===
+@export var save_viewport_state: bool = true                      # 뷰포트 상태 저장 여부
+var _config_file_path: String = "user://viewport_state.cfg"       # 설정 파일 경로
+var _save_timer: Timer                                             # 저장 지연 타이머
 
 const SQRT3: float = 1.7320508075688772
 
@@ -74,12 +80,22 @@ func _ready() -> void:
 	_hover_poly.visible = false
 	_hover_poly.z_index = z_index_on_top + 2
 	add_child(_hover_poly)
+	
+	# 저장 타이머 설정
+	_save_timer = Timer.new()
+	_save_timer.wait_time = 1.0  # 1초 후 저장
+	_save_timer.one_shot = true
+	_save_timer.timeout.connect(_save_viewport_state)
+	add_child(_save_timer)
 
 	_apply_zoom()
 	_update_hover_fill()
 	
 	# 광물 배치
 	_place_ores()
+	
+	# 저장된 뷰포트 상태 복원
+	_load_viewport_state()
 
 func _unhandled_input(event: InputEvent) -> void:
 	# === 줌 ===
@@ -128,6 +144,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var mm: InputEventMouseMotion = event as InputEventMouseMotion
 		if _panning:
 			position += mm.relative
+			_schedule_save()  # 패닝시 저장 예약
 		_update_hover_fill()
 		return
 
@@ -152,6 +169,7 @@ func _zoom_at(screen_pos: Vector2, factor: float) -> void:
 	var local_before: Vector2 = (screen_pos - position) / old_zoom
 	position = screen_pos - local_before * _zoom
 	_apply_zoom()
+	_schedule_save()  # 줌 변경시 저장 예약
 
 func _apply_zoom() -> void:
 	scale = Vector2(_zoom, _zoom)
@@ -373,6 +391,10 @@ func _place_ores() -> void:
 		print("광물 씬이 설정되지 않았습니다")
 		return
 	
+	# 랜덤 시드 설정
+	var rng = RandomNumberGenerator.new()
+	rng.seed = ore_random_seed
+	
 	# 유효한 타일 목록 생성
 	var valid_tiles: Array[Vector2i] = []
 	for rr in range(-radius, radius + 1):
@@ -382,7 +404,7 @@ func _place_ores() -> void:
 			valid_tiles.append(Vector2i(qq, rr))
 	
 	# 균등 분산 알고리즘으로 광물 배치
-	_ore_positions = _distribute_ores_evenly(valid_tiles, ore_count, min_ore_distance)
+	_ore_positions = _distribute_ores_evenly(valid_tiles, ore_count, min_ore_distance, rng)
 	
 	# 광물 인스턴스 생성
 	for pos in _ore_positions:
@@ -393,7 +415,7 @@ func _place_ores() -> void:
 		add_child(ore_instance)
 		_ore_instances.append(ore_instance)
 
-func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int) -> Array[Vector2i]:
+func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int, rng: RandomNumberGenerator) -> Array[Vector2i]:
 	var selected: Array[Vector2i] = []
 	var attempts: int = 0
 	var max_attempts: int = count * 50  # 무한 루프 방지
@@ -406,14 +428,14 @@ func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_dista
 				center_candidates.append(tile)
 		
 		if center_candidates.size() > 0:
-			selected.append(center_candidates[randi() % center_candidates.size()])
+			selected.append(center_candidates[rng.randi() % center_candidates.size()])
 		else:
-			selected.append(valid_tiles[randi() % valid_tiles.size()])
+			selected.append(valid_tiles[rng.randi() % valid_tiles.size()])
 	
 	# 나머지 광물들을 균등하게 분산 배치
 	while selected.size() < count and attempts < max_attempts:
 		attempts += 1
-		var candidate: Vector2i = valid_tiles[randi() % valid_tiles.size()]
+		var candidate: Vector2i = valid_tiles[rng.randi() % valid_tiles.size()]
 		
 		# 최소 거리 확인
 		var too_close: bool = false
@@ -430,3 +452,50 @@ func _distribute_ores_evenly(valid_tiles: Array[Vector2i], count: int, min_dista
 
 func _axial_distance_between(a: Vector2i, b: Vector2i) -> int:
 	return int((abs(a.x - b.x) + abs(a.x + a.y - b.x - b.y) + abs(a.y - b.y)) / 2)
+
+# ---------- 뷰포트 상태 저장/로드 ----------
+func _save_viewport_state() -> void:
+	if not save_viewport_state:
+		return
+		
+	var config = ConfigFile.new()
+	config.set_value("viewport", "zoom", _zoom)
+	config.set_value("viewport", "position_x", position.x)
+	config.set_value("viewport", "position_y", position.y)
+	
+	var error = config.save(_config_file_path)
+	if error == OK:
+		print("뷰포트 상태가 저장되었습니다: 줌=%.2f, 위치=(%.1f, %.1f)" % [_zoom, position.x, position.y])
+	else:
+		print("뷰포트 상태 저장 실패: ", error)
+
+func _load_viewport_state() -> void:
+	if not save_viewport_state:
+		return
+		
+	var config = ConfigFile.new()
+	var error = config.load(_config_file_path)
+	
+	if error != OK:
+		print("저장된 뷰포트 상태가 없습니다")
+		return
+	
+	# 저장된 줌과 위치 복원
+	var saved_zoom = config.get_value("viewport", "zoom", 1.0)
+	var saved_pos_x = config.get_value("viewport", "position_x", position.x)
+	var saved_pos_y = config.get_value("viewport", "position_y", position.y)
+	
+	_zoom = clamp(saved_zoom, min_zoom, max_zoom)
+	position = Vector2(saved_pos_x, saved_pos_y)
+	_apply_zoom()
+	
+	print("뷰포트 상태가 복원되었습니다: 줌=%.2f, 위치=(%.1f, %.1f)" % [_zoom, position.x, position.y])
+
+func _schedule_save() -> void:
+	if not save_viewport_state or not _save_timer:
+		return
+	_save_timer.start()  # 타이머 재시작 (1초 후 저장)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_save_viewport_state()
