@@ -6,6 +6,7 @@
 [node name="UniverseGame" type="Node2D"]
 
 [node name="Universe" parent="." instance=ExtResource("1_universe")]
+turn_duration = 0.1
 
 [node name="HexUI" parent="." instance=ExtResource("2_ui")]
 z_index = 2000

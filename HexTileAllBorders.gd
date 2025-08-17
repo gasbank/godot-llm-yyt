@@ -41,6 +41,13 @@ extends Node2D
 @export var planet_random_seed: int = 2023                        # 행성 배치 랜덤 시드
 @export var planet_scene: PackedScene = preload("res://planet.tscn") # 행성 씬
 
+# === 우주선 설정 ===
+@export var frigate_scene: PackedScene = preload("res://frigate.tscn") # 우주선 씬
+
+# === 턴 시스템 설정 ===
+@export var turn_duration: float = 1.0                           # 턴당 시간 (초)
+@export var auto_play: bool = true                               # 자동 진행 여부
+
 # === 뷰포트 상태 저장 설정 ===
 @export var save_viewport_state: bool = true                      # 뷰포트 상태 저장 여부
 var _config_file_path: String = "user://viewport_state.cfg"       # 설정 파일 경로
@@ -71,7 +78,18 @@ var _ore_instances: Array[Node2D] = []    # 광물 인스턴스들
 # 행성 관리
 var _planet_positions: Array[Vector2i] = []  # 행성이 배치된 중심 타일 좌표
 var _planet_instances: Array[Node2D] = []    # 행성 인스턴스들
+var _planet_resources: Dictionary = {}       # 행성별 보유 자원 (Vector2i -> int)
 var _occupied_tiles: Dictionary = {}         # 모든 점유된 타일 (광물 + 행성)
+
+# 우주선 관리
+var _frigate_instances: Array[Node2D] = []   # 우주선 인스턴스들
+var _frigate_positions: Dictionary = {}      # 우주선 위치 추적 (Vector2i -> Node2D)
+var _mining_tiles: Dictionary = {}           # 채집 중인 타일 (Vector2i -> Node2D)
+
+# 턴 시스템
+var _turn_timer: Timer
+var _current_turn: int = 0
+var _frigates_ready: int = 0                 # 턴 완료한 우주선 수
 
 func _ready() -> void:
 	if center_in_viewport:
@@ -98,6 +116,12 @@ func _ready() -> void:
 	_save_timer.one_shot = true
 	_save_timer.timeout.connect(_save_viewport_state)
 	add_child(_save_timer)
+	
+	# 턴 타이머 설정
+	_turn_timer = Timer.new()
+	_turn_timer.wait_time = turn_duration
+	_turn_timer.timeout.connect(_process_turn)
+	add_child(_turn_timer)
 
 	_apply_zoom()
 	_update_hover_fill()
@@ -107,6 +131,13 @@ func _ready() -> void:
 	
 	# 광물 배치 (행성 위치를 피해서)
 	_place_ores()
+	
+	# 우주선 배치 (각 행성마다 하나씩)
+	_place_frigates()
+	
+	# 턴 시스템 시작
+	if auto_play:
+		_turn_timer.start()
 	
 	# 저장된 뷰포트 상태 복원
 	_load_viewport_state()
@@ -530,6 +561,9 @@ func _place_planets() -> void:
 		# 행성이 점유하는 모든 타일 마킹
 		for occupied_tile in _get_planet_occupied_tiles(pos, planet_radius):
 			_occupied_tiles[occupied_tile] = true
+		
+		# 행성 자원 UI 초기화
+		planet_instance.set_resource_count(0)
 
 func _distribute_planets_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int, rng: RandomNumberGenerator) -> Array[Vector2i]:
 	var selected: Array[Vector2i] = []
@@ -562,6 +596,172 @@ func _get_planet_occupied_tiles(center: Vector2i, planet_radius: int) -> Array[V
 			if hex_distance <= planet_radius:
 				occupied.append(tile)
 	return occupied
+
+# ---------- 우주선 배치 ----------
+func _place_frigates() -> void:
+	if not frigate_scene:
+		print("우주선 씬이 설정되지 않았습니다")
+		return
+	
+	for i in range(_planet_positions.size()):
+		var planet_pos = _planet_positions[i]
+		var planet_instance = _planet_instances[i]
+		var planet_radius = planet_instance.planet_radius
+		
+		# 행성의 가장 바깥 테두리 타일 중 랜덤 선택
+		var edge_tiles = _get_planet_edge_tiles(planet_pos, planet_radius)
+		if edge_tiles.size() == 0:
+			continue
+		
+		var frigate_pos = edge_tiles[randi() % edge_tiles.size()]
+		
+		# 우주선 인스턴스 생성
+		var frigate_instance: Node2D = frigate_scene.instantiate()
+		var world_pos: Vector2 = _axial_to_pixel(frigate_pos.x, frigate_pos.y, hex_size, pointy_top)
+		frigate_instance.position = world_pos
+		frigate_instance.z_index = z_index_on_top + 4  # 행성보다 위에
+		
+		# 우주선 설정
+		frigate_instance.set_hex_size(hex_size)
+		frigate_instance.set_home_planet(planet_pos)
+		frigate_instance.set_hex_grid(self)
+		frigate_instance.current_tile = frigate_pos
+		
+		# 신호 연결
+		frigate_instance.turn_action_completed.connect(_on_frigate_turn_completed)
+		frigate_instance.ore_collected.connect(_on_ore_collected)
+		frigate_instance.ore_deposited.connect(_on_ore_deposited)
+		frigate_instance.frigate_moved.connect(_on_frigate_moved)
+		frigate_instance.mining_started.connect(_on_mining_started)
+		frigate_instance.mining_stopped.connect(_on_mining_stopped)
+		
+		add_child(frigate_instance)
+		_frigate_instances.append(frigate_instance)
+		
+		# 우주선 위치 등록
+		_frigate_positions[frigate_pos] = frigate_instance
+		
+		# 행성 자원 초기화
+		_planet_resources[planet_pos] = 0
+
+func _get_planet_edge_tiles(center: Vector2i, planet_radius: int) -> Array[Vector2i]:
+	var edge_tiles: Array[Vector2i] = []
+	
+	# 행성 반경의 테두리 타일들 찾기
+	for rr in range(-planet_radius, planet_radius + 1):
+		for qq in range(-planet_radius, planet_radius + 1):
+			var tile = center + Vector2i(qq, rr)
+			var hex_distance = int((abs(qq) + abs(rr) + abs(qq + rr)) / 2)
+			
+			# 정확히 반경 거리에 있는 타일만
+			if hex_distance == planet_radius:
+				edge_tiles.append(tile)
+	
+	return edge_tiles
+
+# ---------- 턴 시스템 ----------
+func _process_turn() -> void:
+	_current_turn += 1
+	_frigates_ready = 0
+	
+	# 모든 우주선의 턴 처리 시작
+	for frigate in _frigate_instances:
+		frigate.process_turn()
+	
+	print("턴 %d 시작 - 우주선 %d대 작업 중" % [_current_turn, _frigate_instances.size()])
+
+func _on_frigate_turn_completed() -> void:
+	_frigates_ready += 1
+	
+	# 모든 우주선이 턴을 완료하면 다음 턴 준비
+	if _frigates_ready >= _frigate_instances.size():
+		if auto_play:
+			_turn_timer.start()
+
+func _on_ore_collected(frigate: Node2D, ore_pos: Vector2i) -> void:
+	# 광물 제거
+	var ore_index = _ore_positions.find(ore_pos)
+	if ore_index >= 0:
+		_ore_positions.remove_at(ore_index)
+		var ore_instance = _ore_instances[ore_index]
+		ore_instance.queue_free()
+		_ore_instances.remove_at(ore_index)
+		
+		# 점유 타일에서도 제거
+		_occupied_tiles.erase(ore_pos)
+		
+		print("광물 채집됨: %s" % ore_pos)
+
+func _on_ore_deposited(frigate: Node2D, planet_pos: Vector2i, amount: int) -> void:
+	# 행성에 자원 추가
+	if _planet_resources.has(planet_pos):
+		_planet_resources[planet_pos] += amount
+	else:
+		_planet_resources[planet_pos] = amount
+	
+	# 행성 UI 업데이트
+	var planet_index = _planet_positions.find(planet_pos)
+	if planet_index >= 0:
+		var planet_instance = _planet_instances[planet_index]
+		planet_instance.set_resource_count(_planet_resources[planet_pos])
+	
+	print("행성 %s에 광물 %d개 저장됨 (총 %d개)" % [planet_pos, amount, _planet_resources[planet_pos]])
+
+func _on_frigate_moved(frigate: Node2D, old_pos: Vector2i, new_pos: Vector2i) -> void:
+	# 우주선 위치 업데이트
+	_frigate_positions.erase(old_pos)
+	_frigate_positions[new_pos] = frigate
+
+func _on_mining_started(frigate: Node2D, tile: Vector2i) -> void:
+	# 채집 중인 타일 등록
+	_mining_tiles[tile] = frigate
+
+func _on_mining_stopped(frigate: Node2D, tile: Vector2i) -> void:
+	# 채집 중인 타일 해제
+	_mining_tiles.erase(tile)
+
+# 우주선이 특정 타일로 이동할 수 있는지 확인
+func can_frigate_move_to(tile: Vector2i, requesting_frigate: Node2D = null) -> bool:
+	# 다른 우주선이 점유 중인지 확인
+	if _frigate_positions.has(tile):
+		var occupying_frigate = _frigate_positions[tile]
+		if occupying_frigate != requesting_frigate:
+			return false
+	
+	# 광물이나 행성이 점유 중인지 확인 (둘 다 이동 가능)
+	if _occupied_tiles.has(tile):
+		# 광물인 경우 이동 가능 (같은 타일에서 채집)
+		if _ore_positions.has(tile):
+			return true
+		# 행성인 경우도 이동 가능 (겹침 허용)
+		for planet_pos in _planet_positions:
+			if _is_tile_in_planet(tile, planet_pos):
+				return true
+		return false
+	
+	return true
+
+# 특정 타일이 행성 영역 내에 있는지 확인
+func _is_tile_in_planet(tile: Vector2i, planet_center: Vector2i) -> bool:
+	var planet_index = _planet_positions.find(planet_center)
+	if planet_index >= 0:
+		var planet_instance = _planet_instances[planet_index]
+		var planet_radius = planet_instance.planet_radius
+		var distance = _axial_distance_between(tile, planet_center)
+		return distance <= planet_radius
+	return false
+
+# 특정 광물이 채집 중인지 확인
+func is_ore_being_mined(ore_pos: Vector2i) -> bool:
+	return _mining_tiles.has(ore_pos)
+
+# 사용 가능한 광물 목록 반환 (채집 중이 아닌 것들)
+func get_available_ore_positions() -> Array[Vector2i]:
+	var available: Array[Vector2i] = []
+	for ore_pos in _ore_positions:
+		if not is_ore_being_mined(ore_pos):
+			available.append(ore_pos)
+	return available
 
 # ---------- 뷰포트 상태 저장/로드 ----------
 func _save_viewport_state() -> void:

@@ -7,19 +7,24 @@ extends Node2D
 @export var atmosphere_color: Color = Color(0.5, 0.8, 1.0, 0.3)  # 대기 색상
 
 var hex_size: float = 10.0  # 헥스 타일 크기 (부모에서 설정)
+var resource_count: int = 0  # 보유 자원 개수
+var resource_label: Label  # 자원 표시 레이블
 
 func _ready():
 	_create_planet_visuals()
+	_create_resource_ui()
 
 func set_hex_size(size: float):
 	hex_size = size
 	if is_inside_tree():
 		_create_planet_visuals()
+		_update_resource_ui()
 
 func _create_planet_visuals():
-	# 기존 자식 노드들 제거
+	# 기존 시각 요소들만 제거 (Label은 보존)
 	for child in get_children():
-		child.queue_free()
+		if child != resource_label:
+			child.queue_free()
 	
 	# 행성 반지름 계산 (타일맵 반경 * 헥스 크기)
 	var visual_radius: float = planet_radius * hex_size
@@ -70,3 +75,49 @@ func get_occupied_tiles() -> Array[Vector2i]:
 			if hex_distance <= planet_radius:
 				occupied.append(Vector2i(qq, rr))
 	return occupied
+
+func _create_resource_ui():
+	# 자원 표시 레이블 생성
+	resource_label = Label.new()
+	resource_label.text = "0"
+	resource_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	resource_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	# 스타일 설정
+	resource_label.add_theme_color_override("font_color", Color.WHITE)
+	resource_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	resource_label.add_theme_constant_override("shadow_offset_x", 1)
+	resource_label.add_theme_constant_override("shadow_offset_y", 1)
+	resource_label.add_theme_font_size_override("font_size", 12)
+	
+	add_child(resource_label)
+	_update_resource_ui()
+
+func _update_resource_ui():
+	if not resource_label:
+		return
+		
+	# 행성 크기에 따른 레이블 위치 조정
+	var visual_radius = planet_radius * hex_size
+	resource_label.position = Vector2(-15, visual_radius + 5)  # 행성 아래쪽에 표시
+	resource_label.size = Vector2(30, 20)
+	
+	# 자원 개수 표시
+	resource_label.text = str(resource_count)
+	
+	# 자원이 있으면 밝게, 없으면 어둡게
+	if resource_count > 0:
+		resource_label.modulate = Color.WHITE
+	else:
+		resource_label.modulate = Color.GRAY
+
+func set_resource_count(count: int):
+	resource_count = count
+	_update_resource_ui()
+
+func add_resources(amount: int):
+	resource_count += amount
+	_update_resource_ui()
+
+func get_resource_count() -> int:
+	return resource_count
