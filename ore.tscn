@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://igcxmetxh765"]
+[gd_scene load_steps=0 format=3 uid="uid://igcxmetxh765"]
 
 [node name="Ore" type="Polygon2D"]
 color = Color(0.4, 0.8, 1, 1)

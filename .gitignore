@@ -4,3 +4,4 @@
 /export/
 /*.zip
 .DS_Store
+/build/
