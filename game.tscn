@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://b3bkn7oy8vkq6"]
+[gd_scene load_steps=16 format=3 uid="uid://b3bkn7oy8vkq6"]
 
 [ext_resource type="Texture2D" uid="uid://c83lkvbmvkgr8" path="res://svg/icon.svg" id="1_80nbo"]
 [ext_resource type="Script" uid="uid://dj3xgcy5xl0ks" path="res://player.gd" id="1_e2o6t"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://56sryu3wc8nw" path="res://turret.tscn" id="8_mfdv2"]
 [ext_resource type="Script" uid="uid://cfqqk08gl1c05" path="res://building.gd" id="11_lc2xo"]
 [ext_resource type="Shape2D" uid="uid://dh4kcjmiocdtl" path="res://building_shape.tres" id="12_215e1"]
+[ext_resource type="PackedScene" uid="uid://dwnereei63xkn" path="res://gunner.tscn" id="12_iotsf"]
 [ext_resource type="Texture2D" uid="uid://csxlwi43ytcub" path="res://svg/building-dome-svgrepo-com.svg" id="13_7sc4i"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_e2o6t"]
@@ -108,8 +109,7 @@ shape = ExtResource("2_fc0e3")
 texture = SubResource("PlaceholderTexture2D_fc0e3")
 
 [node name="Player" type="CharacterBody2D" parent="."]
-position = Vector2(103, 143)
-motion_mode = 1
+position = Vector2(1067, 151)
 script = ExtResource("1_e2o6t")
 speed = 400.0
 
@@ -158,3 +158,6 @@ rotation = 3.14159
 scale = Vector2(1, -1)
 bullet_prefab = ExtResource("6_ryrav")
 only_spawn_if_enemy_exists = false
+
+[node name="Gunner" parent="." instance=ExtResource("12_iotsf")]
+position = Vector2(1004, 487)
