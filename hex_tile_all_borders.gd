@@ -1273,17 +1273,82 @@ func _update_ranking_ui():
 
 func _center_camera_on_planet(planet_name: String):
 	var planet_instance = _find_planet_instance_by_name(planet_name)
-	if planet_instance:
-		var planet_pos = planet_instance.position
-		var viewport_size = get_viewport_rect().size
-		var viewport_center = viewport_size * 0.5
+	if not planet_instance:
+		print("Planet instance not found: ", planet_name)
+		return
 
-		var tween = create_tween()
-		tween.set_ease(Tween.EASE_OUT)
-		tween.set_trans(Tween.TRANS_CUBIC)
-		tween.tween_property(self, "position", viewport_center - planet_pos, 0.5)
+	print("Focusing on planet: ", planet_name)
 
-		_update_hover_fill()
+	# 행성 정보 가져오기
+	var planet_world_pos = planet_instance.position
+	var planet_radius = planet_instance.planet_radius
+	var viewport_size = get_viewport_rect().size
+	var viewport_center = viewport_size * 0.5
+
+	# 행성이 화면 절반 정도 차도록 적절한 줌 레벨 계산
+	var target_zoom = _calculate_optimal_zoom_for_planet(planet_radius, viewport_size)
+
+	print("Current zoom: ", _zoom, " -> Target zoom: ", target_zoom)
+	print("Planet world position: ", planet_world_pos)
+
+	# 부드러운 트윈 애니메이션을 위한 시작 값들 저장
+	var start_zoom = _zoom
+	var start_position = position
+
+	# 부드러운 트윈 애니메이션
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_CUBIC)
+
+	# 줌과 위치를 함께 애니메이션
+	tween.tween_method(_tween_camera_focus.bind(planet_world_pos, viewport_center, start_zoom, target_zoom, start_position), 0.0, 1.0, 0.8)
+
+	tween.finished.connect(_on_focus_animation_finished)
+
+func _calculate_optimal_zoom_for_planet(planet_radius: int, viewport_size: Vector2) -> float:
+	# 행성의 실제 월드 크기 계산 (hex 타일 기준)
+	# 행성 반지름은 hex 타일 단위이고, 각 hex 타일의 크기는 hex_size * 2
+	var planet_world_diameter = planet_radius * hex_size * 4.0  # 지름 + 약간의 여유
+
+	# 화면의 더 작은 차원을 기준으로 계산
+	var smaller_viewport_dimension = min(viewport_size.x, viewport_size.y)
+
+	# 행성이 화면의 절반 정도 차도록 줌 레벨 계산
+	# 줌은 scale이므로, 월드 크기 * 줌 = 화면 크기
+	var target_zoom = (smaller_viewport_dimension * 0.5) / planet_world_diameter
+
+	print("Planet radius: ", planet_radius, " hex tiles")
+	print("Planet world diameter: ", planet_world_diameter, " pixels")
+	print("Viewport: ", viewport_size, " smaller dimension: ", smaller_viewport_dimension)
+	print("Calculated target zoom: ", target_zoom)
+
+	# 사용 가능한 줌 레벨로 제한
+	target_zoom = clamp(target_zoom, min_zoom, max_zoom)
+
+	# 마우스 휠 단계에 맞춰 조정 (zoom_step의 배수로)
+	var zoom_steps = round(log(target_zoom) / log(zoom_step))
+	target_zoom = pow(zoom_step, zoom_steps)
+
+	print("Final target zoom: ", target_zoom)
+	return clamp(target_zoom, min_zoom, max_zoom)
+
+func _tween_camera_focus(planet_world_pos: Vector2, viewport_center: Vector2, start_zoom: float, target_zoom: float, start_position: Vector2, progress: float):
+	# 현재 진행도에 따른 줌 계산
+	var current_zoom = lerp(start_zoom, target_zoom, progress)
+	_zoom = current_zoom
+	_apply_zoom()
+
+	# 목표 위치 계산: 행성의 월드 위치가 화면 중앙에 오도록
+	# Node2D.position은 부모로부터의 오프셋이므로, 월드 좌표를 화면 중앙으로 이동시키려면
+	# position = viewport_center - (world_pos * scale)가 되어야 함
+	var target_position = viewport_center - planet_world_pos
+
+	# 시작 위치에서 목표 위치로 보간
+	position = lerp(start_position, target_position, progress)
+
+func _on_focus_animation_finished():
+	_update_hover_fill()
+	print("Planet focus animation completed")
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
