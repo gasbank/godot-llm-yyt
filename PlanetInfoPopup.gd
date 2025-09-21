@@ -34,11 +34,13 @@ func _ready():
 	# 드래그 이벤트 설정
 	mouse_filter = Control.MOUSE_FILTER_PASS
 
-	# 팝업을 최상위에 표시
-	z_index = 10000
+	# CanvasLayer에서는 z-index가 중요하지 않음
+	z_index = 0
 	visible = true
 
-	print("PlanetInfoPopup _ready complete. Position: ", position, " Size: ", size, " Visible: ", visible)
+	print("PlanetInfoPopup _ready complete.")
+	print("Position: ", position, " Size: ", size, " Visible: ", visible)
+	print("Parent type: ", get_parent().get_class() if get_parent() else "no parent")
 
 func setup_popup(p_name: String, p_radius: int, p_resource_count: int):
 	planet_name = p_name
@@ -76,9 +78,9 @@ func _gui_input(event: InputEvent):
 				# 드래그 시작
 				is_dragging = true
 				drag_offset = global_position - get_global_mouse_position()
-				# 이 팝업을 최상위로 가져오기
-				get_parent().move_child(self, -1)
-				z_index = 10000
+				# CanvasLayer에서는 child 순서 변경만으로 충분
+				if get_parent():
+					get_parent().move_child(self, -1)
 			else:
 				# 드래그 종료
 				is_dragging = false

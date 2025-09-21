@@ -12,3 +12,7 @@ turn_duration = 0.1
 z_index = 2000
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="PopupLayer" type="CanvasLayer" parent="."]
+layer = 100
+follow_viewport_enabled = false

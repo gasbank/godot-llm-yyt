@@ -124,14 +124,14 @@ func _ready() -> void:
 	_hover_poly.visible = false
 	_hover_poly.z_index = z_index_on_top + 2
 	add_child(_hover_poly)
-	
+
 	# 저장 타이머 설정
 	_save_timer = Timer.new()
 	_save_timer.wait_time = 1.0  # 1초 후 저장
 	_save_timer.one_shot = true
 	_save_timer.timeout.connect(_save_viewport_state)
 	add_child(_save_timer)
-	
+
 	# 턴 타이머 설정
 	_turn_timer = Timer.new()
 	_turn_timer.wait_time = turn_duration
@@ -140,25 +140,25 @@ func _ready() -> void:
 
 	_apply_zoom()
 	_update_hover_fill()
-	
+
 	# 행성 먼저 배치 (크기가 크므로)
 	_place_planets()
-	
+
 	# 광물 배치 (행성 위치를 피해서)
 	_place_ores()
-	
+
 	# 우주선 배치 (각 행성마다 하나씩)
 	_place_frigates()
-	
+
 	# 턴 시스템 시작
 	if auto_play:
 		_turn_timer.start()
-	
+
 	# 저장된 뷰포트 상태 복원
 	_load_viewport_state()
-	
-	# 팝업 레이어 초기화
-	_setup_popup_layer()
+
+	# 정적으로 정의된 팝업 레이어 참조
+	_find_popup_layer()
 
 func _unhandled_input(event: InputEvent) -> void:
 	# 우클릭 감지 및 격납고 체크 (우선 처리)
@@ -196,11 +196,18 @@ func _check_hangar_click_at_position(global_pos: Vector2) -> bool:
 			return true
 	return false
 
-func _setup_popup_layer():
-	# CanvasLayer를 생성하여 팝업이 모든 것 위에 표시되도록 함
-	_popup_layer = CanvasLayer.new()
-	_popup_layer.layer = 100  # 높은 레이어 값으로 최상위에 표시
-	get_tree().current_scene.add_child(_popup_layer)
+func _find_popup_layer():
+	# tscn 파일에서 정적으로 정의된 PopupLayer 찾기
+	var scene_root = get_tree().current_scene
+	_popup_layer = scene_root.get_node_or_null("PopupLayer")
+
+	if _popup_layer:
+		print("Found static PopupLayer in scene: ", _popup_layer.name)
+		print("PopupLayer info - Layer: ", _popup_layer.layer, " Follow viewport: ", _popup_layer.follow_viewport_enabled)
+	else:
+		print("ERROR: PopupLayer not found in scene! Make sure it exists in universe_game.tscn")
+
+	return _popup_layer != null
 
 func _unhandled_input_original(event: InputEvent) -> void:
 	# === 줌 ===
@@ -661,24 +668,31 @@ func _on_planet_info_popup_requested(planet_name: String, planet_radius: int, re
 
 	print("Popup instance created successfully, type: ", popup_instance.get_class())
 
-	# 팝업을 현재 씬의 루트에 직접 추가 (가장 확실한 방법)
-	var scene_root = get_tree().current_scene
-	print("Adding popup to scene root: ", scene_root.name)
-	scene_root.add_child(popup_instance)
+	# 팝업 레이어 확인
+	if not _popup_layer:
+		print("ERROR: PopupLayer not found! Trying to find it again...")
+		if not _find_popup_layer():
+			print("CRITICAL ERROR: Cannot create popup without PopupLayer!")
+			popup_instance.queue_free()
+			return
 
-	# 팝업 위치를 화면 중앙으로 설정
+	# PopupLayer에 추가
+	print("Adding popup to static PopupLayer: ", _popup_layer.name)
+	_popup_layer.add_child(popup_instance)
+
+	# 팝업 위치를 화면 중앙으로 설정 (CanvasLayer는 스크린 좌표 사용)
 	var viewport_size = get_viewport().get_visible_rect().size
-	popup_instance.position = viewport_size * 0.5 - popup_instance.size * 0.5
-	popup_instance.global_position = popup_instance.position
+	popup_instance.position = viewport_size * 0.5 - Vector2(320, 220) * 0.5
 
-	print("Popup position set to: ", popup_instance.position, " global: ", popup_instance.global_position)
+	print("Popup position set to: ", popup_instance.position, " (screen coordinates)")
 
-	# 팝업을 강제로 최상위에 표시
-	popup_instance.z_index = 20000
+	# CanvasLayer에서는 z-index가 중요하지 않지만 설정
+	popup_instance.z_index = 0  # CanvasLayer 내에서는 낮은 값도 충분
 	popup_instance.show()
 	popup_instance.visible = true
 
-	print("Popup visibility set: ", popup_instance.visible, " z_index: ", popup_instance.z_index)
+	print("Popup added to CanvasLayer. Parent: ", popup_instance.get_parent().name,
+		  " Layer: ", popup_instance.get_parent().layer if popup_instance.get_parent() is CanvasLayer else "not CanvasLayer")
 
 	# 팝업 설정 (위치 설정 후에)
 	popup_instance.setup_popup(planet_name, planet_radius, resource_count)
@@ -711,10 +725,16 @@ func _create_test_planet_popup():
 
 func _close_all_popups():
 	# 모든 팝업 닫기
+	print("Closing all popups, count: ", _facility_popups.size())
 	for popup in _facility_popups:
 		if is_instance_valid(popup):
+			print("Closing popup: ", popup.name if popup.has_method("get") else "unknown")
 			popup.queue_free()
 	_facility_popups.clear()
+
+	# 팝업 레이어 정리 (필요시)
+	if _popup_layer and _popup_layer.get_child_count() == 0:
+		print("Popup layer is empty")
 
 # ---------- 행성 배치 ----------
 func _place_planets() -> void:
