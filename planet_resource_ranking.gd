@@ -7,28 +7,13 @@ signal planet_ranking_clicked(planet_name: String)
 
 func _ready():
 	print("PlanetResourceRanking _ready() called")
-	print("Parent: ", get_parent().name if get_parent() else "null")
-	print("Children count: ", get_child_count())
-	for i in range(get_child_count()):
-		var child = get_child(i)
-		print("Child ", i, ": ", child.name, " (", child.get_class(), ")")
 
 	ranking_container = get_node_or_null("VBoxContainer")
 	if not ranking_container:
-		print("ERROR: VBoxContainer not found in planet_resource_ranking!")
-		print("Available children:")
-		for child in get_children():
-			print("  - ", child.name, " (", child.get_class(), ")")
+		print("ERROR: VBoxContainer not found!")
 		return
 
 	print("VBoxContainer found successfully")
-
-	# CanvasLayer에서는 앵커 프리셋이 다르게 작동할 수 있으므로 직접 위치 설정
-	var viewport_size = get_viewport().get_visible_rect().size
-	position = Vector2(viewport_size.x - 220, 10)  # 오른쪽 위 고정
-	size = Vector2(210, 400)
-
-	print("Ranking UI positioned at: ", position, " with size: ", size)
 
 func setup_ranking(planet_data: Array, manager: Node2D):
 	print("setup_ranking() called")

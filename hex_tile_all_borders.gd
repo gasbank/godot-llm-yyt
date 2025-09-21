@@ -1212,16 +1212,6 @@ func _create_ranking_ui():
 		print("ERROR: RankingLayer not found! Cannot create ranking UI")
 		return
 
-	# 간단한 테스트 UI 먼저 생성
-	var test_label = Label.new()
-	test_label.text = "TEST RANKING UI"
-	test_label.position = Vector2(10, 10)
-	test_label.size = Vector2(200, 30)
-	test_label.add_theme_color_override("font_color", Color.RED)
-	test_label.add_theme_font_size_override("font_size", 20)
-	_ranking_layer.add_child(test_label)
-	print("Test label added to RankingLayer")
-
 	if not ranking_scene:
 		print("ERROR: 랭킹 UI 씬이 설정되지 않았습니다")
 		return
