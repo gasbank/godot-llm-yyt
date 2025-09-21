@@ -22,17 +22,23 @@ signal popup_closed(popup)
 
 func _ready():
 	print("PlanetInfoPopup _ready - all UI elements created in tscn file")
+	print("Node references - Name:", planet_name_label != null, " Radius:", planet_radius_label != null, " Resource:", resource_count_label != null)
 
 	# 닫기 버튼 연결
-	close_button.pressed.connect(_on_close_button_pressed)
+	if close_button:
+		close_button.pressed.connect(_on_close_button_pressed)
+		print("Close button connected")
+	else:
+		print("Close button not found!")
 
 	# 드래그 이벤트 설정
 	mouse_filter = Control.MOUSE_FILTER_PASS
 
 	# 팝업을 최상위에 표시
 	z_index = 10000
+	visible = true
 
-	print("PlanetInfoPopup _ready complete. Position: ", position, " Size: ", size)
+	print("PlanetInfoPopup _ready complete. Position: ", position, " Size: ", size, " Visible: ", visible)
 
 func setup_popup(p_name: String, p_radius: int, p_resource_count: int):
 	planet_name = p_name

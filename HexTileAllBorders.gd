@@ -612,6 +612,8 @@ func _handle_planet_click() -> bool:
 	var af: Vector2 = _pixel_to_axial(local, hex_size, pointy_top)
 	var at: Vector2i = _axial_round(af.x, af.y)
 
+	print("Planet click check - mouse:", mouse_screen, " local:", local, " tile:", at)
+
 	# 클릭한 타일이 어느 행성에 속하는지 확인
 	for i in range(_planet_instances.size()):
 		var planet_pos = _planet_positions[i]
@@ -620,11 +622,15 @@ func _handle_planet_click() -> bool:
 
 		# 클릭한 타일이 이 행성 영역 내에 있는지 확인
 		var distance = _axial_distance_between(at, planet_pos)
+		print("Checking planet ", planet_instance.planet_name, " at ", planet_pos, " distance:", distance, " radius:", planet_radius)
+
 		if distance <= planet_radius:
+			print("PLANET CLICKED: ", planet_instance.planet_name)
 			# 행성 클릭 이벤트 발생
 			planet_instance.on_planet_clicked()
 			return true
 
+	print("No planet found at clicked position")
 	return false
 
 # 행성 정보 팝업 요청 처리
@@ -653,39 +659,40 @@ func _on_planet_info_popup_requested(planet_name: String, planet_radius: int, re
 		print("ERROR: Failed to instantiate planet info popup!")
 		return
 
-	print("Popup instance created successfully")
+	print("Popup instance created successfully, type: ", popup_instance.get_class())
 
-	# 팝업 설정
-	popup_instance.setup_popup(planet_name, planet_radius, resource_count)
-	print("Popup setup completed")
+	# 팝업을 현재 씬의 루트에 직접 추가 (가장 확실한 방법)
+	var scene_root = get_tree().current_scene
+	print("Adding popup to scene root: ", scene_root.name)
+	scene_root.add_child(popup_instance)
 
-	# 팝업 위치를 기존 팝업들과 겹치지 않도록 설정
-	var popup_offset = Vector2(50, 50) * _facility_popups.size()
-	popup_instance.position = Vector2(100, 100) + popup_offset
-	print("Popup position set to: ", popup_instance.position)
+	# 팝업 위치를 화면 중앙으로 설정
+	var viewport_size = get_viewport().get_visible_rect().size
+	popup_instance.position = viewport_size * 0.5 - popup_instance.size * 0.5
+	popup_instance.global_position = popup_instance.position
 
-	# 팝업 닫기 신호 연결
-	popup_instance.popup_closed.connect(_on_popup_closed)
-	print("Popup signal connected")
-
-	# 팝업을 적절한 부모에 추가
-	var target_parent = null
-	if _popup_layer:
-		target_parent = _popup_layer
-		print("Adding popup to popup layer")
-	else:
-		target_parent = get_tree().current_scene
-		print("Adding popup to current scene")
-
-	target_parent.add_child(popup_instance)
-	_facility_popups.append(popup_instance)
-
-	# 팝업이 실제로 추가되었는지 확인
-	print("Planet info popup created and added to scene. Visible: ", popup_instance.visible, " Size: ", popup_instance.size)
+	print("Popup position set to: ", popup_instance.position, " global: ", popup_instance.global_position)
 
 	# 팝업을 강제로 최상위에 표시
 	popup_instance.z_index = 20000
 	popup_instance.show()
+	popup_instance.visible = true
+
+	print("Popup visibility set: ", popup_instance.visible, " z_index: ", popup_instance.z_index)
+
+	# 팝업 설정 (위치 설정 후에)
+	popup_instance.setup_popup(planet_name, planet_radius, resource_count)
+	print("Popup setup completed")
+
+	# 팝업 닫기 신호 연결
+	popup_instance.popup_closed.connect(_on_popup_closed)
+	_facility_popups.append(popup_instance)
+
+	# 최종 확인
+	print("Final popup state - Parent: ", popup_instance.get_parent().name if popup_instance.get_parent() else "null",
+		  " Visible: ", popup_instance.visible,
+		  " Position: ", popup_instance.position,
+		  " Size: ", popup_instance.size)
 
 func _unhandled_key_input(event: InputEvent):
 	# DELETE 키로 모든 팝업 닫기
