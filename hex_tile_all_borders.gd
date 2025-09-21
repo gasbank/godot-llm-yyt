@@ -731,6 +731,10 @@ func _unhandled_key_input(event: InputEvent):
 				# 팝업이 없으면 게임 종료
 				print("ESC pressed - exiting game")
 				get_tree().quit()
+		# R 키로 뷰 리셋
+		elif event.keycode == KEY_R:
+			print("R key pressed - resetting view")
+			_reset_view()
 		# DELETE 키로 모든 팝업 닫기
 		elif event.keycode == KEY_DELETE:
 			_close_all_popups()
@@ -1134,6 +1138,26 @@ func _find_planet_instance_by_name(name: String) -> Node2D:
 			return planet_instance
 	print("Warning: Planet instance not found for name: ", name)
 	return null
+
+func _reset_view() -> void:
+	# 줌을 기본값(1.0)으로 리셋
+	_zoom = 1.0
+	_apply_zoom()
+
+	# 셀 (0,0)의 월드 좌표 계산
+	var center_world_pos: Vector2 = _axial_to_pixel(0, 0, hex_size, pointy_top)
+
+	# 뷰포트 중앙 위치 계산
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var viewport_center: Vector2 = viewport_size * 0.5
+
+	# 셀 (0,0)이 화면 중앙에 오도록 노드 위치 조정
+	position = viewport_center - center_world_pos
+
+	# hover fill 업데이트
+	_update_hover_fill()
+
+	print("View reset - Cell (0,0) centered, zoom: ", _zoom)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
