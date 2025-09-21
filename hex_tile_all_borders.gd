@@ -49,6 +49,9 @@ extends Node2D
 # === 우주선 설정 ===
 @export var frigate_scene: PackedScene = preload("res://frigate.tscn") # 우주선 씬
 
+# === 랭킹 UI 설정 ===
+@export var ranking_scene: PackedScene = preload("res://planet_resource_ranking.tscn") # 랭킹 UI 씬
+
 # === 턴 시스템 설정 ===
 @export var turn_duration: float = 1.0                           # 턴당 시간 (초)
 @export var auto_play: bool = true                               # 자동 진행 여부
@@ -99,12 +102,16 @@ var _facility_popups: Array[Control] = []    # 시설물 팝업들
 var _popup_scene: PackedScene = preload("res://facility_popup.tscn")
 var _planet_info_popup_scene: PackedScene = preload("res://planet_info_popup.tscn")  # 행성 정보 팝업
 var _popup_layer: CanvasLayer = null         # 팝업을 위한 CanvasLayer
+var _ranking_layer: CanvasLayer = null       # 랭킹 UI를 위한 CanvasLayer
 var _mining_tiles: Dictionary = {}           # 채집 중인 타일 (Vector2i -> Node2D)
 
 # 턴 시스템
 var _turn_timer: Timer
 var _current_turn: int = 0
 var _frigates_ready: int = 0                 # 턴 완료한 우주선 수
+
+# 랭킹 UI
+var _ranking_ui: Control = null               # 행성 자원 랭킹 UI
 
 func _ready() -> void:
 	if center_in_viewport:
@@ -160,6 +167,14 @@ func _ready() -> void:
 	# 정적으로 정의된 팝업 레이어 참조
 	_find_popup_layer()
 
+	# 랭킹 UI 생성을 위한 타이머 설정
+	var ranking_timer = Timer.new()
+	ranking_timer.wait_time = 0.5  # 0.5초 후 생성
+	ranking_timer.one_shot = true
+	ranking_timer.timeout.connect(_create_ranking_ui_after_delay)
+	add_child(ranking_timer)
+	ranking_timer.start()
+
 func _unhandled_input(event: InputEvent) -> void:
 	# 우클릭 감지 및 격납고 체크 (우선 처리)
 	if event is InputEventMouseButton:
@@ -197,9 +212,19 @@ func _check_hangar_click_at_position(global_pos: Vector2) -> bool:
 	return false
 
 func _find_popup_layer():
-	# tscn 파일에서 정적으로 정의된 PopupLayer 찾기
+	# tscn 파일에서 정적으로 정의된 PopupLayer와 RankingLayer 찾기
+	print("_find_popup_layer() called")
 	var scene_root = get_tree().current_scene
+	print("Scene root: ", scene_root.name if scene_root else "null")
+	print("Scene root children count: ", scene_root.get_child_count())
+	print("This node: ", name, " parent: ", get_parent().name if get_parent() else "null")
+
+	for i in range(scene_root.get_child_count()):
+		var child = scene_root.get_child(i)
+		print("Scene child ", i, ": ", child.name, " (", child.get_class(), ")")
+
 	_popup_layer = scene_root.get_node_or_null("PopupLayer")
+	_ranking_layer = scene_root.get_node_or_null("RankingLayer")
 
 	if _popup_layer:
 		print("Found static PopupLayer in scene: ", _popup_layer.name)
@@ -207,7 +232,16 @@ func _find_popup_layer():
 	else:
 		print("ERROR: PopupLayer not found in scene! Make sure it exists in universe_game.tscn")
 
-	return _popup_layer != null
+	if _ranking_layer:
+		print("Found static RankingLayer in scene: ", _ranking_layer.name)
+		print("RankingLayer info - Layer: ", _ranking_layer.layer, " Follow viewport: ", _ranking_layer.follow_viewport_enabled)
+
+		# RankingLayer를 찾았으므로 행성이 생성되면 랭킹 UI도 생성할 수 있음
+		print("RankingLayer ready for ranking UI creation")
+	else:
+		print("ERROR: RankingLayer not found in scene! Make sure it exists in universe_game.tscn")
+
+	return _popup_layer != null and _ranking_layer != null
 
 func _unhandled_input_original(event: InputEvent) -> void:
 	# === 줌 ===
@@ -858,6 +892,15 @@ func _place_planets() -> void:
 		if show_planet_cells:
 			_create_planet_cell_display(pos, planet_radius)
 
+	# 랭킹 UI 생성 (행성 생성 후)
+	if _ranking_layer:  # RankingLayer가 이미 찾아졌다면
+		_create_ranking_ui()
+		# 초기 랭킹 UI 업데이트
+		_update_ranking_ui()
+	else:
+		# RankingLayer를 찾지 못했다면 나중에 생성
+		call_deferred("_create_ranking_ui_when_ready")
+
 func _distribute_planets_evenly(valid_tiles: Array[Vector2i], count: int, min_distance: int, rng: RandomNumberGenerator) -> Array[Vector2i]:
 	var selected: Array[Vector2i] = []
 	var attempts: int = 0
@@ -1022,13 +1065,16 @@ func _on_ore_deposited(frigate: Node2D, planet_pos: Vector2i, amount: int) -> vo
 		_planet_resources[planet_pos] += amount
 	else:
 		_planet_resources[planet_pos] = amount
-	
+
 	# 행성 UI 업데이트
 	var planet_index = _planet_positions.find(planet_pos)
 	if planet_index >= 0:
 		var planet_instance = _planet_instances[planet_index]
 		planet_instance.set_resource_count(_planet_resources[planet_pos])
-	
+
+	# 랭킹 UI 업데이트
+	_update_ranking_ui()
+
 	if debug_logs:
 		print("행성 %s에 광물 %d개 저장됨 (총 %d개)" % [planet_pos, amount, _planet_resources[planet_pos]])
 
@@ -1158,6 +1204,96 @@ func _reset_view() -> void:
 	_update_hover_fill()
 
 	print("View reset - Cell (0,0) centered, zoom: ", _zoom)
+
+func _create_ranking_ui():
+	print("_create_ranking_ui() called")
+
+	if not _ranking_layer:
+		print("ERROR: RankingLayer not found! Cannot create ranking UI")
+		return
+
+	# 간단한 테스트 UI 먼저 생성
+	var test_label = Label.new()
+	test_label.text = "TEST RANKING UI"
+	test_label.position = Vector2(10, 10)
+	test_label.size = Vector2(200, 30)
+	test_label.add_theme_color_override("font_color", Color.RED)
+	test_label.add_theme_font_size_override("font_size", 20)
+	_ranking_layer.add_child(test_label)
+	print("Test label added to RankingLayer")
+
+	if not ranking_scene:
+		print("ERROR: 랭킹 UI 씬이 설정되지 않았습니다")
+		return
+
+	print("Instantiating ranking scene...")
+	_ranking_ui = ranking_scene.instantiate()
+	if not _ranking_ui:
+		print("ERROR: Failed to instantiate ranking scene")
+		return
+
+	print("Adding ranking UI to RankingLayer...")
+	_ranking_layer.add_child(_ranking_ui)
+
+	print("Setting up ranking UI with delay...")
+	call_deferred("_setup_ranking_ui_delayed")
+
+func _create_ranking_ui_after_delay():
+	print("_create_ranking_ui_after_delay() called (timer-based)")
+	if _ranking_layer:
+		print("RankingLayer found, creating ranking UI...")
+		_create_ranking_ui()
+		_update_ranking_ui()
+	else:
+		print("RankingLayer still not found after delay")
+
+func _create_ranking_ui_when_ready():
+	print("_create_ranking_ui_when_ready() called")
+	if _ranking_layer:
+		print("RankingLayer found, creating ranking UI...")
+		_create_ranking_ui()
+		_update_ranking_ui()
+	else:
+		print("RankingLayer still not found, giving up")
+
+func _setup_ranking_ui_delayed():
+	if _ranking_ui:
+		print("Setting up ranking UI (delayed)...")
+		_ranking_ui.setup_ranking([], self)
+		print("Ranking UI setup completed")
+		print("Ranking UI position: ", _ranking_ui.position)
+		print("Ranking UI size: ", _ranking_ui.size)
+
+func _update_ranking_ui():
+	if not _ranking_ui:
+		return
+
+	var planet_data = []
+	for i in range(_planet_instances.size()):
+		var planet_instance = _planet_instances[i]
+		var planet_pos = _planet_positions[i]
+		var resource_count = _planet_resources.get(planet_pos, 0)
+
+		planet_data.append({
+			"name": planet_instance.planet_name,
+			"resource_count": resource_count
+		})
+
+	_ranking_ui.update_ranking(planet_data)
+
+func _center_camera_on_planet(planet_name: String):
+	var planet_instance = _find_planet_instance_by_name(planet_name)
+	if planet_instance:
+		var planet_pos = planet_instance.position
+		var viewport_size = get_viewport_rect().size
+		var viewport_center = viewport_size * 0.5
+
+		var tween = create_tween()
+		tween.set_ease(Tween.EASE_OUT)
+		tween.set_trans(Tween.TRANS_CUBIC)
+		tween.tween_property(self, "position", viewport_center - planet_pos, 0.5)
+
+		_update_hover_fill()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:

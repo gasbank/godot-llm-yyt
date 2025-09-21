@@ -16,3 +16,7 @@ grow_vertical = 2
 [node name="PopupLayer" type="CanvasLayer" parent="."]
 layer = 100
 follow_viewport_enabled = false
+
+[node name="RankingLayer" type="CanvasLayer" parent="."]
+layer = 50
+follow_viewport_enabled = false
