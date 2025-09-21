@@ -680,9 +680,17 @@ func _on_planet_info_popup_requested(planet_name: String, planet_radius: int, re
 	print("Adding popup to static PopupLayer: ", _popup_layer.name)
 	_popup_layer.add_child(popup_instance)
 
-	# 팝업 위치를 화면 중앙으로 설정 (CanvasLayer는 스크린 좌표 사용)
+	# 콘텐츠에 맞춰 팝업 크기 자동 조절을 위해 대기
+	await get_tree().process_frame
+	await get_tree().process_frame  # 추가 프레임 대기로 레이아웃 완료 보장
+
+	# PopupPanel 크기에 맞춰 루트 Control 크기 조절
+	var popup_panel_size = popup_instance.popup_panel.size
+	popup_instance.size = popup_panel_size
+
+	# 팝업을 화면 중앙에 배치
 	var viewport_size = get_viewport().get_visible_rect().size
-	popup_instance.position = viewport_size * 0.5 - Vector2(280, 160) * 0.5
+	popup_instance.position = viewport_size * 0.5 - popup_panel_size * 0.5
 
 	print("Popup position set to: ", popup_instance.position, " (screen coordinates)")
 
@@ -694,8 +702,11 @@ func _on_planet_info_popup_requested(planet_name: String, planet_radius: int, re
 	print("Popup added to CanvasLayer. Parent: ", popup_instance.get_parent().name,
 		  " Layer: ", popup_instance.get_parent().layer if popup_instance.get_parent() is CanvasLayer else "not CanvasLayer")
 
+	# 행성 인스턴스 찾기
+	var planet_instance = _find_planet_instance_by_name(planet_name)
+
 	# 팝업 설정 (위치 설정 후에)
-	popup_instance.setup_popup(planet_name, planet_radius, resource_count)
+	popup_instance.setup_popup(planet_name, planet_radius, resource_count, planet_instance)
 	print("Popup setup completed")
 
 	# 팝업 닫기 신호 연결
@@ -1115,6 +1126,14 @@ func _schedule_save() -> void:
 	if not save_viewport_state or not _save_timer:
 		return
 	_save_timer.start()  # 타이머 재시작 (1초 후 저장)
+
+func _find_planet_instance_by_name(name: String) -> Node2D:
+	# 행성 이름으로 행성 인스턴스 찾기
+	for planet_instance in _planet_instances:
+		if planet_instance.planet_name == name:
+			return planet_instance
+	print("Warning: Planet instance not found for name: ", name)
+	return null
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:

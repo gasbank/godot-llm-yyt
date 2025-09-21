@@ -1,152 +1,98 @@
-[gd_scene load_steps=2 format=3 uid="uid://cqmg4p3vks1vd"]
+[gd_scene load_steps=3 format=3 uid="uid://cqmg4p3vks1vd"]
 
-[ext_resource type="Script" path="res://PlanetInfoPopup.gd" id="1_1ymzq"]
+[ext_resource type="Script" uid="uid://od1gs2b5eh1i" path="res://PlanetInfoPopup.gd" id="1_1ymzq"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.58665854, 0.0013987037, 0.25986844, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.9, 1)
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 3
 
 [node name="PlanetInfoPopup" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 280.0
-offset_bottom = 160.0
-mouse_filter = 0
 script = ExtResource("1_1ymzq")
 
-[node name="Shadow" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = 3.0
-offset_bottom = 3.0
-color = Color(0, 0, 0, 0.3)
-mouse_filter = 2
-
-[node name="Border" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.8, 0.8, 0.9, 1)
-mouse_filter = 2
-
-[node name="Background" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 2.0
-offset_top = 2.0
-offset_right = -2.0
-offset_bottom = -2.0
-color = Color(0.15, 0.2, 0.35, 0.95)
-mouse_filter = 2
-
-[node name="MainContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 2.0
-offset_top = 2.0
-offset_right = -2.0
-offset_bottom = -2.0
-mouse_filter = 2
-
-[node name="HeaderContainer" type="Control" parent="MainContainer"]
+[node name="PopupPanel" type="PanelContainer" parent="."]
 layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="ContentVBox" type="VBoxContainer" parent="PopupPanel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="TitleRow" type="HBoxContainer" parent="PopupPanel/ContentVBox"]
 custom_minimum_size = Vector2(0, 32)
-
-[node name="HeaderBackground" type="ColorRect" parent="MainContainer/HeaderContainer"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.25, 0.35, 0.55, 1)
+layout_mode = 2
 mouse_filter = 2
 
-[node name="HeaderMargin" type="MarginContainer" parent="MainContainer/HeaderContainer"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 4.0
-offset_right = -8.0
-offset_bottom = -4.0
-
-[node name="HeaderContent" type="HBoxContainer" parent="MainContainer/HeaderContainer/HeaderMargin"]
-layout_mode = 2
-
-[node name="Title" type="Label" parent="MainContainer/HeaderContainer/HeaderMargin/HeaderContent"]
+[node name="TitleMargin" type="MarginContainer" parent="PopupPanel/ContentVBox/TitleRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Title" type="Label" parent="PopupPanel/ContentVBox/TitleRow/TitleMargin"]
+layout_mode = 2
 text = "행성 정보"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CloseButton" type="Button" parent="MainContainer/HeaderContainer/HeaderMargin/HeaderContent"]
-layout_mode = 2
+[node name="CloseButton" type="Button" parent="PopupPanel/ContentVBox/TitleRow"]
 custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
 text = "✕"
 
-[node name="ContentContainer" type="MarginContainer" parent="MainContainer"]
+[node name="PlanetNameRow" type="HBoxContainer" parent="PopupPanel/ContentVBox"]
 layout_mode = 2
-size_flags_vertical = 3
-offset_left = 12.0
-offset_top = 4.0
-offset_right = -12.0
-offset_bottom = -12.0
+mouse_filter = 2
 
-[node name="ContentVBox" type="VBoxContainer" parent="MainContainer/ContentContainer"]
-layout_mode = 2
-
-[node name="PlanetNameRow" type="HBoxContainer" parent="MainContainer/ContentContainer/ContentVBox"]
-layout_mode = 2
-
-[node name="PlanetIcon" type="Label" parent="MainContainer/ContentContainer/ContentVBox/PlanetNameRow"]
-layout_mode = 2
+[node name="PlanetIcon" type="Label" parent="PopupPanel/ContentVBox/PlanetNameRow"]
 custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
 text = "🪐"
 horizontal_alignment = 1
 
-[node name="PlanetName" type="Label" parent="MainContainer/ContentContainer/ContentVBox/PlanetNameRow"]
+[node name="PlanetName" type="Label" parent="PopupPanel/ContentVBox/PlanetNameRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "행성: [이름]"
 
-[node name="Spacer1" type="Control" parent="MainContainer/ContentContainer/ContentVBox"]
+[node name="RadiusRow" type="HBoxContainer" parent="PopupPanel/ContentVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 6)
+mouse_filter = 2
 
-[node name="RadiusRow" type="HBoxContainer" parent="MainContainer/ContentContainer/ContentVBox"]
-layout_mode = 2
-
-[node name="RadiusIcon" type="Label" parent="MainContainer/ContentContainer/ContentVBox/RadiusRow"]
-layout_mode = 2
+[node name="RadiusIcon" type="Label" parent="PopupPanel/ContentVBox/RadiusRow"]
 custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
 text = "📏"
 horizontal_alignment = 1
 
-[node name="PlanetRadius" type="Label" parent="MainContainer/ContentContainer/ContentVBox/RadiusRow"]
+[node name="PlanetRadius" type="Label" parent="PopupPanel/ContentVBox/RadiusRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "반지름: [값]"
 
-[node name="Spacer2" type="Control" parent="MainContainer/ContentContainer/ContentVBox"]
+[node name="ResourceRow" type="HBoxContainer" parent="PopupPanel/ContentVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 6)
+mouse_filter = 2
 
-[node name="ResourceRow" type="HBoxContainer" parent="MainContainer/ContentContainer/ContentVBox"]
-layout_mode = 2
-
-[node name="ResourceIcon" type="Label" parent="MainContainer/ContentContainer/ContentVBox/ResourceRow"]
-layout_mode = 2
+[node name="ResourceIcon" type="Label" parent="PopupPanel/ContentVBox/ResourceRow"]
 custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
 text = "💎"
 horizontal_alignment = 1
 
-[node name="ResourceCount" type="Label" parent="MainContainer/ContentContainer/ContentVBox/ResourceRow"]
+[node name="ResourceCount" type="Label" parent="PopupPanel/ContentVBox/ResourceRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "보유 자원: [개수]개"

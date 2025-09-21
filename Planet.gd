@@ -20,6 +20,7 @@ var hangar_position: Vector2i  # 격납고 위치
 # 신호
 signal facility_popup_requested(facility_name: String, planet_name: String)
 signal planet_info_requested(planet_name: String, planet_radius: int, resource_count: int)
+signal resource_changed(new_resource_count: int)
 
 func _ready():
 	base_scale = get_parent().scale if get_parent() else Vector2.ONE
@@ -149,10 +150,12 @@ func _update_resource_ui():
 func set_resource_count(count: int):
 	resource_count = count
 	_update_resource_ui()
+	resource_changed.emit(resource_count)
 
 func add_resources(amount: int):
 	resource_count += amount
 	_update_resource_ui()
+	resource_changed.emit(resource_count)
 
 func get_resource_count() -> int:
 	return resource_count
