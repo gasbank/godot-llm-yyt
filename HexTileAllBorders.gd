@@ -682,7 +682,7 @@ func _on_planet_info_popup_requested(planet_name: String, planet_radius: int, re
 
 	# 팝업 위치를 화면 중앙으로 설정 (CanvasLayer는 스크린 좌표 사용)
 	var viewport_size = get_viewport().get_visible_rect().size
-	popup_instance.position = viewport_size * 0.5 - Vector2(320, 220) * 0.5
+	popup_instance.position = viewport_size * 0.5 - Vector2(280, 160) * 0.5
 
 	print("Popup position set to: ", popup_instance.position, " (screen coordinates)")
 
@@ -709,9 +709,19 @@ func _on_planet_info_popup_requested(planet_name: String, planet_radius: int, re
 		  " Size: ", popup_instance.size)
 
 func _unhandled_key_input(event: InputEvent):
-	# DELETE 키로 모든 팝업 닫기
+	# ESC 키 처리
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_DELETE:
+		if event.keycode == KEY_ESCAPE:
+			# 팝업이 열려있는지 확인
+			if _facility_popups.size() > 0:
+				# 팝업이 있으면 아무것도 하지 않음 (팝업에서 자체적으로 ESC 처리)
+				return
+			else:
+				# 팝업이 없으면 게임 종료
+				print("ESC pressed - exiting game")
+				get_tree().quit()
+		# DELETE 키로 모든 팝업 닫기
+		elif event.keycode == KEY_DELETE:
 			_close_all_popups()
 		# P 키로 테스트 행성 팝업 생성
 		elif event.keycode == KEY_P:

@@ -11,11 +11,14 @@ var is_dragging: bool = false
 var drag_offset: Vector2
 
 # UI 노드 참조 (@onready로 자동 할당)
-@onready var planet_name_label: Label = $VBoxContainer/Content/PlanetNameContainer/PlanetName
-@onready var planet_radius_label: Label = $VBoxContainer/Content/RadiusContainer/PlanetRadius
-@onready var resource_count_label: Label = $VBoxContainer/Content/ResourceContainer/ResourceCount
-@onready var close_button: Button = $VBoxContainer/Header/CloseButton
-@onready var title_label: Label = $VBoxContainer/Header/Title
+@onready var planet_name_label: Label = $MainContainer/ContentContainer/ContentVBox/PlanetNameRow/PlanetName
+@onready var planet_radius_label: Label = $MainContainer/ContentContainer/ContentVBox/RadiusRow/PlanetRadius
+@onready var resource_count_label: Label = $MainContainer/ContentContainer/ContentVBox/ResourceRow/ResourceCount
+@onready var close_button: Button = $MainContainer/HeaderContainer/HeaderMargin/HeaderContent/CloseButton
+@onready var title_label: Label = $MainContainer/HeaderContainer/HeaderMargin/HeaderContent/Title
+@onready var header_container: Control = $MainContainer/HeaderContainer
+@onready var content_container: MarginContainer = $MainContainer/ContentContainer
+@onready var content_vbox: VBoxContainer = $MainContainer/ContentContainer/ContentVBox
 
 # 신호
 signal popup_closed(popup)
@@ -31,12 +34,21 @@ func _ready():
 	else:
 		print("Close button not found!")
 
-	# 드래그 이벤트 설정
-	mouse_filter = Control.MOUSE_FILTER_PASS
+	# 제목표시줄에 드래그 이벤트 연결
+	if header_container:
+		header_container.gui_input.connect(_on_header_gui_input)
+		header_container.mouse_filter = Control.MOUSE_FILTER_PASS
+		print("Header drag event connected")
+
+	# 마우스 이벤트를 팝업이 모두 차단하도록 설정
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	# CanvasLayer에서는 z-index가 중요하지 않음
 	z_index = 0
 	visible = true
+
+	# 콘텐츠 크기에 맞춰 팝업 크기 조절
+	_adjust_popup_size()
 
 	print("PlanetInfoPopup _ready complete.")
 	print("Position: ", position, " Size: ", size, " Visible: ", visible)
@@ -51,6 +63,9 @@ func setup_popup(p_name: String, p_radius: int, p_resource_count: int):
 
 	# 레이블 업데이트
 	_update_labels()
+
+	# 콘텐츠 크기에 맞춰 팝업 크기 조절
+	_adjust_popup_size()
 
 func _update_labels():
 	# UI 업데이트
@@ -71,6 +86,7 @@ func _update_labels():
 		print("Updated title label: ", title_label.text)
 
 func _gui_input(event: InputEvent):
+	# 모든 마우스 이벤트를 소비하여 뒤쪽 요소들로 전달되지 않도록 함
 	if event is InputEventMouseButton:
 		var mb = event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -85,14 +101,74 @@ func _gui_input(event: InputEvent):
 				# 드래그 종료
 				is_dragging = false
 
-	elif event is InputEventMouseMotion and is_dragging:
-		# 드래그 중 위치 업데이트
-		global_position = get_global_mouse_position() + drag_offset
+		# 이벤트 소비
+		get_viewport().set_input_as_handled()
+
+	elif event is InputEventMouseMotion:
+		if is_dragging:
+			# 드래그 중 위치 업데이트
+			global_position = get_global_mouse_position() + drag_offset
+
+		# 마우스 모션 이벤트도 소비
+		get_viewport().set_input_as_handled()
 
 func _on_close_button_pressed():
 	print("Planet popup close button pressed")
 	popup_closed.emit(self)
 	queue_free()
+
+func _on_header_gui_input(event: InputEvent):
+	# 제목표시줄에서 드래그 처리
+	if event is InputEventMouseButton:
+		var mb = event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				# 드래그 시작
+				is_dragging = true
+				drag_offset = global_position - get_global_mouse_position()
+				# CanvasLayer에서는 child 순서 변경만으로 충분
+				if get_parent():
+					get_parent().move_child(self, -1)
+			else:
+				# 드래그 종료
+				is_dragging = false
+
+		# 이벤트 소비
+		get_viewport().set_input_as_handled()
+
+	elif event is InputEventMouseMotion:
+		if is_dragging:
+			# 드래그 중 위치 업데이트
+			global_position = get_global_mouse_position() + drag_offset
+
+		# 마우스 모션 이벤트도 소비
+		get_viewport().set_input_as_handled()
+
+func _adjust_popup_size():
+	# 콘텐츠 크기 계산을 위해 다음 프레임까지 대기
+	await get_tree().process_frame
+
+	if content_vbox:
+		# 콘텐츠의 실제 크기 계산
+		var content_size = content_vbox.get_combined_minimum_size()
+
+		# 헤더와 마진을 고려한 최소 크기 계산
+		var header_height = 32  # HeaderContainer의 minimum_size
+		var margin_x = 24  # 좌우 마진 (12 + 12)
+		var margin_y = 16  # 상하 마진 (4 + 12)
+		var border_offset = 4  # 보더 오프셋
+
+		var min_width = content_size.x + margin_x + border_offset
+		var min_height = content_size.y + header_height + margin_y + border_offset
+
+		# 최소 크기 적용 (기존 크기보다 작지 않도록)
+		var new_width = max(size.x, min_width)
+		var new_height = max(size.y, min_height)
+
+		# 크기 조정
+		if new_width != size.x or new_height != size.y:
+			size = Vector2(new_width, new_height)
+			print("Popup size adjusted to: ", size)
 
 func _input(event: InputEvent):
 	# ESC 키로 팝업 닫기

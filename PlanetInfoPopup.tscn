@@ -5,8 +5,9 @@
 [node name="PlanetInfoPopup" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 320.0
-offset_bottom = 220.0
+offset_right = 280.0
+offset_bottom = 160.0
+mouse_filter = 0
 script = ExtResource("1_1ymzq")
 
 [node name="Shadow" type="ColorRect" parent="."]
@@ -19,6 +20,7 @@ offset_top = 3.0
 offset_right = 3.0
 offset_bottom = 3.0
 color = Color(0, 0, 0, 0.3)
+mouse_filter = 2
 
 [node name="Border" type="ColorRect" parent="."]
 layout_mode = 1
@@ -26,6 +28,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.8, 0.8, 0.9, 1)
+mouse_filter = 2
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -37,104 +40,113 @@ offset_top = 2.0
 offset_right = -2.0
 offset_bottom = -2.0
 color = Color(0.15, 0.2, 0.35, 0.95)
+mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="MainContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 12.0
-offset_top = 12.0
-offset_right = -12.0
-offset_bottom = -12.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+mouse_filter = 2
 
-[node name="Header" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HeaderContainer" type="Control" parent="MainContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 32)
+
+[node name="HeaderBackground" type="ColorRect" parent="MainContainer/HeaderContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.25, 0.35, 0.55, 1)
+mouse_filter = 2
+
+[node name="HeaderMargin" type="MarginContainer" parent="MainContainer/HeaderContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = -8.0
+offset_bottom = -4.0
+
+[node name="HeaderContent" type="HBoxContainer" parent="MainContainer/HeaderContainer/HeaderMargin"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="VBoxContainer/Header"]
+[node name="Title" type="Label" parent="MainContainer/HeaderContainer/HeaderMargin/HeaderContent"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "행성 정보"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="CloseButton" type="Button" parent="VBoxContainer/Header"]
+[node name="CloseButton" type="Button" parent="MainContainer/HeaderContainer/HeaderMargin/HeaderContent"]
 layout_mode = 2
-custom_minimum_size = Vector2(32, 32)
+custom_minimum_size = Vector2(24, 24)
 text = "✕"
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
-layout_mode = 2
-color = Color(0.6, 0.7, 0.8, 1)
-
-[node name="Content" type="VBoxContainer" parent="VBoxContainer"]
+[node name="ContentContainer" type="MarginContainer" parent="MainContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+offset_left = 12.0
+offset_top = 4.0
+offset_right = -12.0
+offset_bottom = -12.0
 
-[node name="PlanetNameContainer" type="HBoxContainer" parent="VBoxContainer/Content"]
+[node name="ContentVBox" type="VBoxContainer" parent="MainContainer/ContentContainer"]
 layout_mode = 2
 
-[node name="PlanetNameIcon" type="Label" parent="VBoxContainer/Content/PlanetNameContainer"]
+[node name="PlanetNameRow" type="HBoxContainer" parent="MainContainer/ContentContainer/ContentVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(30, 0)
+
+[node name="PlanetIcon" type="Label" parent="MainContainer/ContentContainer/ContentVBox/PlanetNameRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(24, 0)
 text = "🪐"
 horizontal_alignment = 1
 
-[node name="PlanetName" type="Label" parent="VBoxContainer/Content/PlanetNameContainer"]
+[node name="PlanetName" type="Label" parent="MainContainer/ContentContainer/ContentVBox/PlanetNameRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "행성: [이름]"
 
-[node name="VSeparator1" type="Control" parent="VBoxContainer/Content"]
+[node name="Spacer1" type="Control" parent="MainContainer/ContentContainer/ContentVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
+custom_minimum_size = Vector2(0, 6)
 
-[node name="RadiusContainer" type="HBoxContainer" parent="VBoxContainer/Content"]
+[node name="RadiusRow" type="HBoxContainer" parent="MainContainer/ContentContainer/ContentVBox"]
 layout_mode = 2
 
-[node name="RadiusIcon" type="Label" parent="VBoxContainer/Content/RadiusContainer"]
+[node name="RadiusIcon" type="Label" parent="MainContainer/ContentContainer/ContentVBox/RadiusRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(30, 0)
+custom_minimum_size = Vector2(24, 0)
 text = "📏"
 horizontal_alignment = 1
 
-[node name="PlanetRadius" type="Label" parent="VBoxContainer/Content/RadiusContainer"]
+[node name="PlanetRadius" type="Label" parent="MainContainer/ContentContainer/ContentVBox/RadiusRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "반지름: [값]"
 
-[node name="VSeparator2" type="Control" parent="VBoxContainer/Content"]
+[node name="Spacer2" type="Control" parent="MainContainer/ContentContainer/ContentVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
+custom_minimum_size = Vector2(0, 6)
 
-[node name="ResourceContainer" type="HBoxContainer" parent="VBoxContainer/Content"]
+[node name="ResourceRow" type="HBoxContainer" parent="MainContainer/ContentContainer/ContentVBox"]
 layout_mode = 2
 
-[node name="ResourceIcon" type="Label" parent="VBoxContainer/Content/ResourceContainer"]
+[node name="ResourceIcon" type="Label" parent="MainContainer/ContentContainer/ContentVBox/ResourceRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(30, 0)
+custom_minimum_size = Vector2(24, 0)
 text = "💎"
 horizontal_alignment = 1
 
-[node name="ResourceCount" type="Label" parent="VBoxContainer/Content/ResourceContainer"]
+[node name="ResourceCount" type="Label" parent="MainContainer/ContentContainer/ContentVBox/ResourceRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "보유 자원: [개수]개"
-
-[node name="VSeparator3" type="Control" parent="VBoxContainer/Content"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 12)
-
-[node name="InfoContainer" type="HBoxContainer" parent="VBoxContainer/Content"]
-layout_mode = 2
-
-[node name="InfoIcon" type="Label" parent="VBoxContainer/Content/InfoContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(30, 0)
-text = "ℹ️"
-horizontal_alignment = 1
-
-[node name="InfoLabel" type="Label" parent="VBoxContainer/Content/InfoContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "드래그하여 이동 가능"
-modulate = Color(0.8, 0.9, 1, 0.8)
