@@ -11,8 +11,8 @@ config_version=5
 [application]
 
 config/name="Universe"
-run/main_scene="uid://b3bkn7oy8vkq6"
-config/features=PackedStringArray("4.4", "Mobile")
+run/main_scene="uid://co14df0rtvkvj"
+config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://svg/icon.svg"
 
 [autoload]
@@ -23,8 +23,8 @@ Delay="*res://Delay.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
+window/size/viewport_width=2560
+window/size/viewport_height=1440
 
 [gui]
 

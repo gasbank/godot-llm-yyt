@@ -19,6 +19,7 @@ var hangar_position: Vector2i  # 격납고 위치
 
 # 신호
 signal facility_popup_requested(facility_name: String, planet_name: String)
+signal planet_info_requested(planet_name: String, planet_radius: int, resource_count: int)
 
 func _ready():
 	base_scale = get_parent().scale if get_parent() else Vector2.ONE
@@ -244,3 +245,9 @@ func _on_facility_clicked(facility_name: String, planet_name_from_facility: Stri
 	print("Planet received facility click signal: ", facility_name, " on planet: ", planet_name)
 	# 시설물 클릭 시 팝업 요청 신호 발송
 	facility_popup_requested.emit(facility_name, planet_name)
+
+# 행성 클릭 이벤트 처리
+func on_planet_clicked():
+	print("Planet clicked: ", planet_name)
+	# 행성 정보 팝업 요청 신호 발송
+	planet_info_requested.emit(planet_name, planet_radius, resource_count)

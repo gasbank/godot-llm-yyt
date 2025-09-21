@@ -97,6 +97,7 @@ var _frigate_positions: Dictionary = {}      # 우주선 위치 추적 (Vector2i
 # 팝업 관리
 var _facility_popups: Array[Control] = []    # 시설물 팝업들
 var _popup_scene: PackedScene = preload("res://FacilityPopup.tscn")
+var _planet_info_popup_scene: PackedScene = preload("res://PlanetInfoPopup.tscn")  # 행성 정보 팝업
 var _popup_layer: CanvasLayer = null         # 팝업을 위한 CanvasLayer
 var _mining_tiles: Dictionary = {}           # 채집 중인 타일 (Vector2i -> Node2D)
 
@@ -240,6 +241,9 @@ func _unhandled_input_original(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var btn: InputEventMouseButton = event as InputEventMouseButton
 		if btn.pressed and btn.button_index == MOUSE_BUTTON_LEFT and not _panning:
+			# 행성 클릭 체크 먼저
+			if _handle_planet_click():
+				return  # 행성 클릭이면 타일 토글은 하지 않음
 			_handle_tile_click()
 			return
 
@@ -601,11 +605,102 @@ func _on_popup_closed(popup: Control):
 	# 팝업 목록에서 제거
 	_facility_popups.erase(popup)
 
+# 행성 클릭 처리
+func _handle_planet_click() -> bool:
+	var mouse_screen: Vector2 = get_viewport().get_mouse_position()
+	var local: Vector2 = to_local(mouse_screen)
+	var af: Vector2 = _pixel_to_axial(local, hex_size, pointy_top)
+	var at: Vector2i = _axial_round(af.x, af.y)
+
+	# 클릭한 타일이 어느 행성에 속하는지 확인
+	for i in range(_planet_instances.size()):
+		var planet_pos = _planet_positions[i]
+		var planet_instance = _planet_instances[i]
+		var planet_radius = planet_instance.planet_radius
+
+		# 클릭한 타일이 이 행성 영역 내에 있는지 확인
+		var distance = _axial_distance_between(at, planet_pos)
+		if distance <= planet_radius:
+			# 행성 클릭 이벤트 발생
+			planet_instance.on_planet_clicked()
+			return true
+
+	return false
+
+# 행성 정보 팝업 요청 처리
+func _on_planet_info_popup_requested(planet_name: String, planet_radius: int, resource_count: int):
+	print("Planet info popup requested: ", planet_name, " radius: ", planet_radius, " resources: ", resource_count)
+
+	# 팝업 씬이 제대로 로드되었는지 확인
+	if not _planet_info_popup_scene:
+		print("ERROR: Planet info popup scene not loaded!")
+		return
+
+	# 동일한 행성에 대한 팝업이 이미 있는지 확인
+	for popup in _facility_popups:
+		if popup.has_method("setup_popup") and popup.get("planet_name") == planet_name:
+			print("Planet info popup already exists for ", planet_name)
+			# 기존 팝업을 최상위로 가져오기
+			popup.get_parent().move_child(popup, -1)
+			popup.z_index = 10000
+			return
+
+	print("Creating new planet info popup...")
+
+	# 새 행성 정보 팝업 생성
+	var popup_instance = _planet_info_popup_scene.instantiate()
+	if not popup_instance:
+		print("ERROR: Failed to instantiate planet info popup!")
+		return
+
+	print("Popup instance created successfully")
+
+	# 팝업 설정
+	popup_instance.setup_popup(planet_name, planet_radius, resource_count)
+	print("Popup setup completed")
+
+	# 팝업 위치를 기존 팝업들과 겹치지 않도록 설정
+	var popup_offset = Vector2(50, 50) * _facility_popups.size()
+	popup_instance.position = Vector2(100, 100) + popup_offset
+	print("Popup position set to: ", popup_instance.position)
+
+	# 팝업 닫기 신호 연결
+	popup_instance.popup_closed.connect(_on_popup_closed)
+	print("Popup signal connected")
+
+	# 팝업을 적절한 부모에 추가
+	var target_parent = null
+	if _popup_layer:
+		target_parent = _popup_layer
+		print("Adding popup to popup layer")
+	else:
+		target_parent = get_tree().current_scene
+		print("Adding popup to current scene")
+
+	target_parent.add_child(popup_instance)
+	_facility_popups.append(popup_instance)
+
+	# 팝업이 실제로 추가되었는지 확인
+	print("Planet info popup created and added to scene. Visible: ", popup_instance.visible, " Size: ", popup_instance.size)
+
+	# 팝업을 강제로 최상위에 표시
+	popup_instance.z_index = 20000
+	popup_instance.show()
+
 func _unhandled_key_input(event: InputEvent):
 	# DELETE 키로 모든 팝업 닫기
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_DELETE:
 			_close_all_popups()
+		# P 키로 테스트 행성 팝업 생성
+		elif event.keycode == KEY_P:
+			print("P key pressed - creating test planet popup")
+			_create_test_planet_popup()
+
+func _create_test_planet_popup():
+	# 테스트용 행성 팝업 생성
+	print("Creating test planet popup...")
+	_on_planet_info_popup_requested("Test Planet", 3, 42)
 
 func _close_all_popups():
 	# 모든 팝업 닫기
@@ -691,6 +786,8 @@ func _place_planets() -> void:
 		
 		# 시설물 팝업 요청 신호 연결
 		planet_instance.facility_popup_requested.connect(_on_facility_popup_requested)
+		# 행성 정보 팝업 요청 신호 연결
+		planet_instance.planet_info_requested.connect(_on_planet_info_popup_requested)
 		
 		add_child(planet_instance)
 		_planet_instances.append(planet_instance)
