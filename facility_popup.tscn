@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://dtg00lp7w7mub"]
+[gd_scene load_steps=2 format=3 uid="uid://c3ejwt4gy3mu6"]
 
-[ext_resource type="Script" path="res://FacilityPopup.gd" id="1_popup"]
+[ext_resource type="Script" path="res://facility_popup.gd" id="1_popup"]
 
 [node name="FacilityPopup" type="Control"]
 custom_minimum_size = Vector2(250, 150)

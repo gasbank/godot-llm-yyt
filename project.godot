@@ -17,9 +17,9 @@ config/icon="res://svg/icon.svg"
 
 [autoload]
 
-OllamaClient="*res://OllamaClient.gd"
-Utils="*res://Utils.gd"
-Delay="*res://Delay.gd"
+OllamaClient="*res://ollama_client.gd"
+Utils="*res://utils.gd"
+Delay="*res://delay.gd"
 
 [display]
 

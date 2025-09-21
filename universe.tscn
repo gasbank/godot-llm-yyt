@@ -1,9 +1,11 @@
 [gd_scene load_steps=2 format=3 uid="uid://7v5mt3hc3iq"]
 
-[ext_resource type="Script" uid="uid://cu33fdko6os8m" path="res://HexTileAllBorders.gd" id="1_ksisf"]
+[ext_resource type="Script" uid="uid://cu33fdko6os8m" path="res://hex_tile_all_borders.gd" id="1_ksisf"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_ksisf")
+radius = 50
 hex_size = 8.0
 line_width = 1.0
 line_color = Color(0.133333, 0.133333, 0.133333, 1)
+center_in_viewport = true

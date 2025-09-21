@@ -201,7 +201,7 @@ func create_hangar(tile_position: Vector2i):
 	hangar_position = tile_position
 	
 	# 격납고 씬 로드
-	var hangar_scene = preload("res://Hangar.tscn")
+	var hangar_scene = preload("res://hangar.tscn")
 	var hangar_instance = hangar_scene.instantiate()
 	
 	# 격납고를 시설물로 등록

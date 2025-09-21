@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://d2pic5uvdvide" path="res://HexUI.gd" id="1_ui"]
+[ext_resource type="Script" uid="uid://d2pic5uvdvide" path="res://hex_ui.gd" id="1_ui"]
 
 [node name="HexUI" type="Control"]
 layout_mode = 3

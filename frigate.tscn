@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://Frigate.gd" id="1_frigate"]
+[ext_resource type="Script" path="res://frigate.gd" id="1_frigate"]
 
 [node name="Frigate" type="Node2D"]
 script = ExtResource("1_frigate")

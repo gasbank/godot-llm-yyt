@@ -96,8 +96,8 @@ var _frigate_positions: Dictionary = {}      # 우주선 위치 추적 (Vector2i
 
 # 팝업 관리
 var _facility_popups: Array[Control] = []    # 시설물 팝업들
-var _popup_scene: PackedScene = preload("res://FacilityPopup.tscn")
-var _planet_info_popup_scene: PackedScene = preload("res://PlanetInfoPopup.tscn")  # 행성 정보 팝업
+var _popup_scene: PackedScene = preload("res://facility_popup.tscn")
+var _planet_info_popup_scene: PackedScene = preload("res://planet_info_popup.tscn")  # 행성 정보 팝업
 var _popup_layer: CanvasLayer = null         # 팝업을 위한 CanvasLayer
 var _mining_tiles: Dictionary = {}           # 채집 중인 타일 (Vector2i -> Node2D)
 

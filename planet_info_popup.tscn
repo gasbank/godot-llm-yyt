@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://cqmg4p3vks1vd"]
+[gd_scene load_steps=3 format=3 uid="uid://dd88xdgiipr5d"]
 
-[ext_resource type="Script" uid="uid://od1gs2b5eh1i" path="res://PlanetInfoPopup.gd" id="1_1ymzq"]
+[ext_resource type="Script" uid="uid://od1gs2b5eh1i" path="res://planet_info_popup.gd" id="1_1ymzq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.58665854, 0.0013987037, 0.25986844, 1)
